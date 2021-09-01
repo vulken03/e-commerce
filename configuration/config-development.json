@@ -1,0 +1,11 @@
+{
+    "host": "localhost",
+    "port": "8000",
+    "database": {
+        "name": "e-commerce",
+        "dialect": "mysql"
+    },
+    "jwt": {
+        "key": "encrypt@098"
+    }
+}
