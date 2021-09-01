@@ -30,18 +30,18 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: false,
       },
     },
-    {
-      hooks: {
-        beforeCreate: (admin) => {
-          admin.password = encryptPassword(admin.password);
-        },
-        beforeUpdate: (updatedAdmin) => {
-          if (updatedAdmin.password) {
-            updatedAdmin.password = encryptPassword(updatedAdmin.password);
-          }
-        },
-      },
-    }
+    // {
+    //   hooks: {
+    //     beforeCreate: (admin) => {
+    //       admin.password = encryptPassword(admin.password);
+    //     },
+    //     beforeUpdate: (updatedAdmin) => {
+    //       if (updatedAdmin.password) {
+    //         updatedAdmin.password = encryptPassword(updatedAdmin.password);
+    //       }
+    //     },
+    //   },
+    //}
   );
 
   return admin;
