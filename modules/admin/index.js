@@ -1,5 +1,6 @@
-const admin = require("./admin-model");
-const admin_middleware = require("../../utils/common");
+const admin = require("./admin-services");
+
 module.exports = (app) => {
   app.post("/admin_login", admin.admin_login);
+  app.post('/create_admin',admin.admin_registration)
 };

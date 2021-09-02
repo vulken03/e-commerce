@@ -1,5 +1,5 @@
 const constants = {
-    insecureRoutes: ["/user_login", "/user_registration", "/admin_login","/passwordResetMail","/downloadTemplate"],
+    insecureRoutes: [ "/admin_login","/create_admin"],
     responseCodes: {
       success: 200,
       error: 500,

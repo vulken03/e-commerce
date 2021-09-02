@@ -1,10 +1,13 @@
 require("dotenv").config();
 const express = require("express");
+const middleware = require("./middleware");
 const api = require("./routes");
 const { errorHandler } = require("./utils/error");
-const middleware = require("./middleware");
+
 const { logger } = require("./utils/logger");
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 global._DB = require("./database");
 global.__basedir = __dirname;
 middleware(app);
