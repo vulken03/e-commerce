@@ -19,6 +19,7 @@ const admin_registration = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -41,6 +42,7 @@ const admin_login = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 module.exports = {
