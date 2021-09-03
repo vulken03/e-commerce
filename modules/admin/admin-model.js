@@ -66,8 +66,8 @@ const admin_login = async ({ username, password }) => {
     if (isValidate) {
       const session = await createSessionAdmin({ admin });
       if (session) {
-        const { uuid, isAdmin } = session;
-        const jwt = await generateJwtToken({ admin }, uuid, isAdmin);
+        const { uuid, is_admin } = session;
+        const jwt = await generateJwtToken(admin , uuid, is_admin);
         if (jwt) {
           return jwt;
         } else {

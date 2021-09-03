@@ -13,7 +13,11 @@ module.exports = (sequelize, Sequelize) => {
     },
   });
   product_brand.associate = (models) => {
-    product_brand.belongsToMany(models.product_type, { through: "type_brand",foreignKey:'brand_id'});
+    product_brand.belongsToMany(models.product_type, {
+      through: "type_brand",
+      foreignKey: "brand_id",
+      otherKey:"product_type_id"
+    });
   };
   return product_brand;
 };
