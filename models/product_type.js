@@ -23,6 +23,11 @@ module.exports = (sequelize, Sequelize) => {
       foreignKey: "product_type_id",
       otherKey: "brand_id",
     });
+    product_type.associate = (models) => {
+      product_type.hasMany(models.mobile_attributes, {
+        foreignKey: "product_type_id",
+      });
+    };
   };
   return product_type;
 };

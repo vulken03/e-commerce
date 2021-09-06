@@ -19,6 +19,7 @@ const productSchema = {
       minItems: 1,
     },
   },
+  required: ["product_type_name", "category_name", "brand_name"],
 };
 module.exports = {
   productSchema,
