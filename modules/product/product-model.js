@@ -20,13 +20,13 @@ const create_category = async (create_product_type, category_name) => {
   let category_list = [];
 
   for (let i of category_name) {
-    const check_category = await _DB.product_categories.findOne({
+    const check_category = await _DB.product_category.findOne({
       where: {
         category_name: i,
       },
     });
     if (check_category) {
-      _DB.type_categories.create({
+      _DB.type_category.create({
         product_type_id: create_product_type.product_type_id,
         category_id: check_category.category_id,
       });
@@ -36,7 +36,7 @@ const create_category = async (create_product_type, category_name) => {
       });
     }
   }
-  const create_category = await _DB.product_categories.bulkCreate(
+  const create_category = await _DB.product_category.bulkCreate(
     category_list
   );
   let arr1 = [];
@@ -46,7 +46,7 @@ const create_category = async (create_product_type, category_name) => {
       category_id: k.category_id,
     });
   }
-  await _DB.type_categories.bulkCreate(arr1);
+  await _DB.type_category.bulkCreate(arr1);
   if (create_category) {
     return true;
   } else {

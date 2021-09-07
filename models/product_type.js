@@ -13,8 +13,8 @@ module.exports = (sequelize, Sequelize) => {
     },
   });
   product_type.associate = (models) => {
-    product_type.belongsToMany(models.product_categories, {
-      through: "type_categories",
+    product_type.belongsToMany(models.product_category, {
+      through: "type_category",
       foreignKey: "product_type_id",
       otherKey: "category_id",
     });
@@ -23,11 +23,9 @@ module.exports = (sequelize, Sequelize) => {
       foreignKey: "product_type_id",
       otherKey: "brand_id",
     });
-    product_type.associate = (models) => {
-      product_type.hasMany(models.mobile_attributes, {
-        foreignKey: "product_type_id",
-      });
-    };
+    product_type.hasMany(models.product_type_attribute, {
+      foreignKey: "product_type_id",
+    });
   };
   return product_type;
 };

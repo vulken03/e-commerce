@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-  const type_categories = sequelize.define("type_categories", {
+  const type_category = sequelize.define("type_category", {
     product_type_id: {
       type: Sequelize.INTEGER,
       allowNull: false,
@@ -9,5 +9,5 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
     },
   });
-  return type_categories;
+  return type_category;
 };

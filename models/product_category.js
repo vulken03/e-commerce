@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-  const product_categories = sequelize.define("product_categories", {
+  const product_category = sequelize.define("product_category", {
     category_id: {
       type: Sequelize.INTEGER,
       primaryKey: true,
@@ -12,12 +12,12 @@ module.exports = (sequelize, Sequelize) => {
       unique: true,
     },
   });
-  product_categories.associate = (models) => {
-    product_categories.belongsToMany(models.product_type, {
-      through: "type_categories",
+  product_category.associate = (models) => {
+    product_category.belongsToMany(models.product_type, {
+      through: "type_category",
       foreignKey: "category_id",
       otherKey:"product_type_id"
     });
   };
-  return product_categories;
+  return product_category;
 };
