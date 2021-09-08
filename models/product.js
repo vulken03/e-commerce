@@ -29,5 +29,10 @@ module.exports = (sequelize, Sequelize) => {
       max: 200000,
     },
   });
+  product.associate = (models) => {
+    product.hasMany(models.product_attribute_value, {
+      foreignKey: "product_id",
+    });
+  };
   return product;
 };

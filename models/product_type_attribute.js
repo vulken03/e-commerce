@@ -14,7 +14,11 @@ module.exports = (sequelize, Sequelize) => {
     product_type_id: {
       type: Sequelize.INTEGER,
       allowNull: false,
-      unique:true
+    },
+
+    is_active: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: 1,
     },
   });
   product_type_attribute.associate = (models) => {
@@ -22,6 +26,9 @@ module.exports = (sequelize, Sequelize) => {
       foreignKey: "product_type_id",
     });
     product_type_attribute.hasMany(models.attribute_value, {
+      foreignKey: "attribute_id",
+    });
+    product_type_attribute.hasMany(models.product_attribute_value, {
       foreignKey: "attribute_id",
     });
   };
