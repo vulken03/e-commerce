@@ -11,4 +11,21 @@ module.exports = (app) => {
     allowAdminOnly,
     attribute_service.add_product_specification
   );
+  app.get(
+    "/all_product_listing",
+    allowAdminOnly,
+    attribute_service.product_listing
+  );
+
+  app.get(
+    "/specific_product_listing/:product_id",
+    allowAdminOnly,
+    attribute_service.specific_product_listing
+  );
+
+  app.delete(
+    "/delete_product/:product_id",
+    allowAdminOnly,
+    attribute_service.delete_product
+  );
 };

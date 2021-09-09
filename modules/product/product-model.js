@@ -1,19 +1,42 @@
-const create_product = async (productData) => {
-  const { product_type_name, category_name, brand_name } = productData;
-  const create_product_type = await _DB.product_type.create({
-    product_type_name,
-  });
-  if (create_product_type) {
-    const category = await create_category(create_product_type, category_name);
-    const brand = await create_brand(create_product_type, brand_name);
-    const [m1, m2] = await Promise.all([category, brand]);
-    if (m1 && m2) {
-      return true;
+const create_product_type = async (productData) => {
+  //const transaction = _DB.sequelize.transaction();
+  try {
+    const { product_type_name, category_name, brand_name } = productData;
+
+    const create_product_type = await _DB.product_type.create(
+      {
+        product_type_name,
+      }
+      //{ transaction }
+    );
+    if (create_product_type) {
+      const category = await create_category(
+        create_product_type,
+        category_name
+        // {
+        //   transaction,
+        // }
+      );
+      const brand = await create_brand(
+        create_product_type,
+        brand_name
+        //   {
+        //   transaction,
+        // }
+      );
+      const [m1, m2] = await Promise.all([category, brand]);
+      if (m1 && m2) {
+        //await transaction.commit();
+        return true;
+      } else {
+        throw new Error("error while creating catagery or brand");
+      }
     } else {
-      throw new Error("error while creating catagery or brand");
+      throw new Error("error while creating product_category");
     }
-  } else {
-    throw new Error("error while creating product_category");
+  } catch (err) {
+    //await transaction.rollback();
+    throw err;
   }
 };
 const create_category = async (create_product_type, category_name) => {
@@ -36,9 +59,7 @@ const create_category = async (create_product_type, category_name) => {
       });
     }
   }
-  const create_category = await _DB.product_category.bulkCreate(
-    category_list
-  );
+  const create_category = await _DB.product_category.bulkCreate(category_list);
   let arr1 = [];
   for (let k of create_category) {
     arr1.push({
@@ -88,6 +109,77 @@ const create_brand = async (create_product_type, brand_name) => {
   }
 };
 
+const delete_product_type = async (product_type_id) => {
+  const find_product_type_attribute = await _DB.product_type_attribute.findOne({
+    where: {
+      product_type_id,
+    },
+  });
+
+  const find_product = await _DB.product.findOne({
+    where: {
+      product_type_id,
+    },
+  });
+  if (!find_product_type_attribute && !find_product) {
+    const product_type_deletion = await _DB.product_type.destroy({
+      where: {
+        product_type_id,
+      },
+    });
+    if (product_type_deletion) {
+      return true;
+    } else {
+      throw new Error("error while deleting...");
+    }
+  } else {
+    throw new Error("attribute is found with this product_type");
+  }
+};
+
+const product_type_listing = async () => {
+  const find_product_types = await _DB.product_type.findAll({
+    include: [
+      {
+        model: _DB.product_category,
+      },
+      {
+        model: _DB.product_brand,
+      },
+    ],
+    raw: true,
+  });
+  if (find_product_types) {
+    return find_product_types;
+  } else {
+    throw new Error("error while product type listing");
+  }
+};
+
+const specific_product_type = async (product_type_id) => {
+  const find_product_type = await _DB.product_type.findAll({
+    where: {
+      product_type_id,
+    },
+    include: [
+      {
+        model: _DB.product_category,
+      },
+      {
+        model: _DB.product_brand,
+      },
+    ],
+    raw: true,
+  });
+  if (find_product_type) {
+    return find_product_type;
+  } else {
+    throw new Error("product type is not found with this product_type_id");
+  }
+};
 module.exports = {
-  create_product,
+  create_product_type,
+  delete_product_type,
+  product_type_listing,
+  specific_product_type,
 };

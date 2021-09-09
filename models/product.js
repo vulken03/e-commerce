@@ -28,11 +28,16 @@ module.exports = (sequelize, Sequelize) => {
       min: 5000,
       max: 200000,
     },
+    product_type_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
   });
   product.associate = (models) => {
     product.hasMany(models.product_attribute_value, {
       foreignKey: "product_id",
     });
+    product.belongsTo(models.product_type, { foreignKey: "product_type_id" });
   };
   return product;
 };
