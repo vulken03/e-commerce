@@ -87,10 +87,63 @@ const delete_product = async (req, res, next) => {
     next(err);
   }
 };
+
+const update_product = async (req, res, next) => {
+  try {
+    const data = req.body;
+    const product_id = req.params.product_id;
+    const { isValid, error } = common.schemaValidator(
+      data,
+      product_attributes_schema.create_specification_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+
+    const product_updation = await product_attributes_model.update_product(
+      product_id,
+      data
+    );
+    res.status(constants.responseCodes.success).json({
+      message: constants.responseMessage.success,
+      product_updation,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const update_product_type_attributes = async (req, res, next) => {
+  try {
+    const data = req.body;
+    const attribute_id = req.params.attribute_id;
+    const { isValid, error } = common.schemaValidator(
+      data,
+      product_attributes_schema.update_attribute_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+
+    const update_attributes =
+      await product_attributes_model.update_product_type_attribute(
+        data,
+        attribute_id
+      );
+    res.status(constants.responseCodes.success).json({
+      message: constants.responseMessage.success,
+      update_attributes,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   add_product_type_attributes,
   add_product_specification,
   product_listing,
   specific_product_listing,
   delete_product,
+  update_product,
+  update_product_type_attributes,
 };

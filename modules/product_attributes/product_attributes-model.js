@@ -1,53 +1,3 @@
-const create_product_type_attribute = async ({
-  attribute_name,
-  product_type_name,
-  attribute_values,
-}) => {
-  const transaction = await _DB.sequelize.transaction();
-  try {
-    const find_product_type = await _DB.product_type.findOne({
-      where: {
-        product_type_name,
-      },
-    });
-    if (find_product_type) {
-      const create_attribute = await _DB.product_type_attribute.create(
-        {
-          attribute_name,
-          product_type_id: find_product_type.product_type_id,
-        },
-        { transaction }
-      );
-      if (create_attribute) {
-        const attribute_value_list = [];
-        for (let i of attribute_values) {
-          attribute_value_list.push({
-            attribute_value: i,
-            attribute_id: create_attribute.attribute_id,
-          });
-        }
-        const create_attribute_values = await _DB.attribute_value.bulkCreate(
-          attribute_value_list,
-          { transaction }
-        );
-        if (create_attribute_values) {
-          await transaction.commit();
-          return true;
-        } else {
-          throw new Error("error while creating attribute values");
-        }
-      } else {
-        throw new Error("error while creating attribute");
-      }
-    } else {
-      throw new Error("product type is not found");
-    }
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
-};
-
 const create_product_data = async (specification_data) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -172,10 +122,140 @@ const delete_product = async (product_id) => {
     throw new Error("product is not found whit this product_id");
   }
 };
+
+const update_product = async (product_id, product_data) => {
+  const find_product = await _DB.product.findOne({
+    where: {
+      product_id,
+    },
+  });
+  if (find_product) {
+    await find_product.update(product_data, {
+      fields: [
+        "product_name",
+        "model_name",
+        "product_description",
+        "price",
+        "quantity",
+      ],
+    });
+    return true;
+  } else {
+    throw new Error("attribute is not found with this product_id");
+  }
+};
+
+const create_product_type_attribute = async ({
+  attribute_name,
+  product_type_name,
+  attribute_values,
+}) => {
+  const transaction = await _DB.sequelize.transaction();
+  try {
+    const find_product_type = await _DB.product_type.findOne({
+      where: {
+        product_type_name,
+      },
+    });
+    if (find_product_type) {
+      const create_attribute = await _DB.product_type_attribute.create(
+        {
+          attribute_name,
+          product_type_id: find_product_type.product_type_id,
+        },
+        { transaction }
+      );
+      if (create_attribute) {
+        const attribute_value_list = [];
+        for (let i of attribute_values) {
+          attribute_value_list.push({
+            attribute_value: i,
+            attribute_id: create_attribute.attribute_id,
+          });
+        }
+        const create_attribute_values = await _DB.attribute_value.bulkCreate(
+          attribute_value_list,
+          { transaction }
+        );
+        if (create_attribute_values) {
+          await transaction.commit();
+          return true;
+        } else {
+          throw new Error("error while creating attribute values");
+        }
+      } else {
+        throw new Error("error while creating attribute");
+      }
+    } else {
+      throw new Error("product type is not found");
+    }
+  } catch (err) {
+    await transaction.rollback();
+    throw err;
+  }
+};
+
+const update_product_type_attribute = async (
+  { attribute_name, attribute_values },
+  attribute_id
+) => {
+  try {
+    const transaction = await _DB.sequelize.transaction();
+    const find_product_type_attribute =
+      await _DB.product_type_attribute.findOne({
+        where: {
+          attribute_id,
+        },
+      });
+    if (find_product_type_attribute) {
+      const update_product_type_attribute =
+        await find_product_type_attribute.update(
+          {
+            attribute_name,
+          },
+          transaction
+        );
+      if (update_product_type_attribute) {
+        await _DB.attribute_value.destroy({
+          where: {
+            attribute_id,
+          },
+          transaction,
+        });
+        const attribute_values_list = [];
+        for (let i of attribute_values) {
+          attribute_values_list.push({
+            attribute_value: i,
+            attribute_id,
+          });
+        }
+        const create_attribute_values = await _DB.attribute_value.bulkCreate(
+          attribute_values_list,
+          { transaction }
+        );
+        if (create_attribute_values) {
+          await transaction.commit();
+          return true;
+        } else {
+          throw new Error("error while creating attribute values");
+        }
+      } else {
+        throw new Error("error while updating product_type attribute");
+      }
+    } else {
+      throw new Error("attributes with this attribute_id is not found");
+    }
+  } catch (err) {
+    await transaction.rollback();
+    throw err;
+  }
+};
 module.exports = {
   create_product_type_attribute,
   create_product_data,
   product_listing,
   specific_product_listing,
   delete_product,
+  update_product,
+  update_product_type_attribute,
 };

@@ -63,9 +63,34 @@ const find_single_product_type = async (req, res, next) => {
     next(err);
   }
 };
+
+const update_product_type = async (req, res, next) => {
+  try {
+    const product_type_data = req.body;
+    const product_type_id = req.params.product_type_id;
+    const { isValid, error } = common.schemaValidator(
+      product_type_data,
+      product_schema.productSchema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const update = await product_model.update_product_type(
+      product_type_id,
+      product_type_data
+    );
+    res.status(constants.responseCodes.success).json({
+      message: constants.responseMessage.success,
+      update,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   create_product_type,
   delete_product_type,
   product_type_listing,
-  find_single_product_type 
+  find_single_product_type,
+  update_product_type,
 };

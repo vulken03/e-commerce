@@ -4,14 +4,14 @@ const productSchema = {
     product_type_name: {
       type: "string",
     },
-    category_name: {
+    product_category_list: {
       type: "array",
       items: {
         type: "string",
       },
       minItems: 1,
     },
-    brand_name: {
+    product_brand_list: {
       type: "array",
       items: {
         type: "string",
@@ -19,8 +19,19 @@ const productSchema = {
       minItems: 1,
     },
   },
-  required: ["product_type_name", "category_name", "brand_name"],
+  required: ["product_type_name", "product_category_list", "product_brand_list"],
+};
+
+const update_product_type_schema = {
+  type: "object",
+  properties: {
+    product_type_name: {
+      type: "string",
+    },
+  },
+  required: ["product_type_name"],
 };
 module.exports = {
   productSchema,
+  update_product_type_schema,
 };

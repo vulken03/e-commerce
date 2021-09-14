@@ -22,4 +22,10 @@ module.exports = (app) => {
     allowAdminOnly,
     product_service.find_single_product_type
   );
+
+  app.put(
+    "/update_product_type/:product_type_id",
+    allowAdminOnly,
+    product_service.update_product_type
+  );
 };

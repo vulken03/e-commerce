@@ -20,6 +20,24 @@ const create_attribute_schema = {
   },
 };
 
+const update_attribute_schema = {
+  type: "object",
+  properties: {
+    attribute_name: {
+      type: "string",
+      maxLength: 20,
+    },
+    attribute_values: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+      minItems: 1,
+    },
+    required: ["attribute_name", "attribute_values"],
+  },
+};
+
 const create_specification_schema = {
   type: "object",
   properties: {
@@ -66,4 +84,5 @@ const create_specification_schema = {
 module.exports = {
   create_attribute_schema,
   create_specification_schema,
+  update_attribute_schema
 };
