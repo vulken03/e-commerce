@@ -171,22 +171,38 @@ const delete_product_type = async (product_type_id) => {
 
 const product_type_listing = async () => {
   const find_product_types = await _DB.product_type.findAll({
+    attributes: ["product_type_name"],
     include: [
       {
         model: _DB.product_category,
         attributes: [
-          [sequelize.fn("GROUP_CONCAT", "category_name"), "product_category.category_name"],
+            [sequelize.fn(
+              "GROUP_CONCAT",
+              sequelize.literal("DISTINCT `category_name`")
+            ),
+            "category_list"]
         ],
-        group: "product_type.product_type_id",
+        through: {
+          attributes: [],
+        },
       },
       {
         model: _DB.product_brand,
         attributes: [
-          [sequelize.fn("GROUP_CONCAT", "brand_name"), "product_brand.brand_name"],
+          [
+            sequelize.fn(
+              "GROUP_CONCAT",
+              sequelize.literal("DISTINCT `brand_name`")
+            ),
+            "brand_list",
+          ],
         ],
-        group: "product_type.product_type_id",
+        through: {
+          attributes: [],
+        },
       },
     ],
+    group: "product_type.product_type_id",
     raw: true,
   });
   if (find_product_types) {
@@ -201,14 +217,40 @@ const specific_product_type = async (product_type_id) => {
     where: {
       product_type_id,
     },
+    attributes: ["product_type_name"],
     include: [
       {
         model: _DB.product_category,
+        attributes: [
+          [
+            sequelize.fn(
+              "GROUP_CONCAT",
+              sequelize.literal("DISTINCT `category_name`")
+            ),
+            "category_list",
+          ],
+        ],
+        through: {
+          attributes: [],
+        },
       },
       {
         model: _DB.product_brand,
+        attributes: [
+          [
+            sequelize.fn(
+              "GROUP_CONCAT",
+              sequelize.literal("DISTINCT `brand_name`")
+            ),
+            "brand_list",
+          ],
+        ],
+        through: {
+          attributes: [],
+        },
       },
     ],
+    group: "product_type.product_type_id",
     raw: true,
   });
   if (find_product_type) {

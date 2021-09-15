@@ -73,7 +73,6 @@ const product_listing = async () => {
         attributes: ["attribute_name"],
       },
     },
-
     raw: true,
   });
   if (all_products) {
