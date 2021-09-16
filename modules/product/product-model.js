@@ -176,11 +176,13 @@ const product_type_listing = async () => {
       {
         model: _DB.product_category,
         attributes: [
-            [sequelize.fn(
+          [
+            sequelize.fn(
               "GROUP_CONCAT",
               sequelize.literal("DISTINCT `category_name`")
             ),
-            "category_list"]
+            "category_list",
+          ],
         ],
         through: {
           attributes: [],
@@ -205,7 +207,7 @@ const product_type_listing = async () => {
     group: "product_type.product_type_id",
     raw: true,
   });
-  if (find_product_types) {
+  if (find_product_types.length >= 0) {
     return find_product_types;
   } else {
     throw new Error("error while product type listing");
@@ -253,7 +255,7 @@ const specific_product_type = async (product_type_id) => {
     group: "product_type.product_type_id",
     raw: true,
   });
-  if (find_product_type) {
+  if (find_product_type.length>=0) {
     return find_product_type;
   } else {
     throw new Error("product type is not found with this product_type_id");

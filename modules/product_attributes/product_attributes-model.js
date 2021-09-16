@@ -1,3 +1,4 @@
+const sequelize = require("sequelize");
 const create_product_data = async (specification_data) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -65,17 +66,26 @@ const create_product_data = async (specification_data) => {
 
 const product_listing = async () => {
   const all_products = await _DB.product.findAll({
-    include: {
-      model: _DB.product_attribute_value,
-      attributes: ["value"],
-      include: {
-        model: _DB.product_type_attribute,
-        attributes: ["attribute_name"],
-      },
-    },
-    raw: true,
+    attributes:["product_name","model_name","product_description","quantity","price",
+      [
+        sequelize.literal(
+          `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
+                                product_type_attribute.attribute_name,
+                                'attribute_value',
+                                product_attribute_value.value))
+        FROM
+            product_type_attribute
+                LEFT JOIN
+            product_attribute_value ON product_type_attribute.attribute_id = product_attribute_value.attribute_id)
+        `),'attribute_list'
+      ]
+    ]
   });
-  if (all_products) {
+
+  // await _DB.product_type_attribute.findAll({
+  //   attributes:[]
+  // })
+  if (all_products.length >= 0) {
     return all_products;
   } else {
     throw new Error("error while getting all products");
@@ -97,7 +107,7 @@ const specific_product_listing = async (product_id) => {
     },
     raw: true,
   });
-  if (specific_product) {
+  if (specific_product.length >= 0) {
     return specific_product;
   } else {
     throw new Error(`don't find product with this product_id`);
