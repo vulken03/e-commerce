@@ -1,4 +1,5 @@
 const sequelize = require("sequelize");
+const{Op}=require('sequelize')
 const create_product_type = async (productData) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -169,22 +170,69 @@ const delete_product_type = async (product_type_id) => {
   }
 };
 
-const product_type_listing = async () => {
-  const find_product_types = await _DB.product_type.findAll({
-    attributes: ["product_type_name", [
+const product_type_listing = async ({category_name,brand_name}) => {
+  const filter={}
+   
+  if(category_name&&!brand_name){
+ 
+    filter.attributes=["product_type_name"],
+    filter.include={
+      model:_DB.product_category,
+      where:{
+        category_name
+      },
+      attributes:[],
+      through:{attributes:[]}
+    },
+    filter.raw=true
+  }else if(brand_name&&!category_name){
+    filter.attributes=["product_type_name"],
+    filter.include={
+      model:_DB.product_brand,
+      where:{
+        brand_name
+      },
+      attributes:[],
+      through:{attributes:[]}
+    },
+    filter.raw=true
+  }else if(category_name&&brand_name){
+    filter.attributes=['product_type_name'],
+    filter.include=[
+      {
+         model:_DB.product_category,
+         where:{
+           category_name
+         },
+         attributes:[],
+        through:{attributes:[]}
+      },
+      {
+        model:_DB.product_brand,
+        where:{
+          brand_name
+        },
+         attributes:[],
+        through:{attributes:[]}
+      }           
+    ],
+    filter.raw=true
+  }else{
+    filter.attributes=["product_type_name",[
       sequelize.fn(
         "GROUP_CONCAT",
         sequelize.literal("DISTINCT `category_name`")
       ),
       "category_list",
-    ], [
+    ],
+    [
       sequelize.fn(
         "GROUP_CONCAT",
         sequelize.literal("DISTINCT `brand_name`")
       ),
       "brand_list",
     ]],
-    include: [
+    filter.include=[
       {
         model: _DB.product_category,
         attributes: [],
@@ -201,9 +249,12 @@ const product_type_listing = async () => {
         },
       },
     ],
-    group: "product_type.product_type_id",
-    raw: true,
-  });
+    filter.raw=true
+    filter.group="product_type.product_type_id"
+  }
+  const find_product_types = await _DB.product_type.findAll(
+    filter
+);
   if (find_product_types.length >= 0) {
     return find_product_types;
   } else {
@@ -211,23 +262,76 @@ const product_type_listing = async () => {
   }
 };
 
+// const product_type_listing=async()=>{
+//   const find_product_type = await _DB.product_type.findAll({
+//     attributes: ["product_type_name",
+//     [
+//       sequelize.fn(
+//         "GROUP_CONCAT",
+//         sequelize.literal("DISTINCT `category_name`")
+//       ),
+//       "category_list",
+//     ],
+//     [
+//       sequelize.fn(
+//         "GROUP_CONCAT",
+//         sequelize.literal("DISTINCT `brand_name`")
+//       ),
+//       "brand_list",
+//     ]
+//   ],
+//     include: [
+//       {
+//         model: _DB.product_category,
+//         attributes: [],
+//         through: {
+//           attributes: [],
+//         },
+//       },
+//       {
+//         model: _DB.product_brand,
+//         attributes: [],
+//         through: {
+//           attributes: [],
+//         },
+//       },
+//     ],
+//     group: "product_type.product_type_id",
+//     raw: true,
+//   });
+//   if (find_product_type.length>=0) {
+//     return find_product_type;
+//   } else {
+//     throw new Error("product type is not found with this product_type_id");
+//   }
+// }
+
 const specific_product_type = async (product_type_id) => {
   const find_product_type = await _DB.product_type.findAll({
     where: {
       product_type_id,
     },
-    attributes: ["product_type_name"],
+    attributes: ["product_type_name",
+    [
+      sequelize.fn(
+        "GROUP_CONCAT",
+        sequelize.literal("DISTINCT `category_name`")
+      ),
+      "category_list",
+    ],
+    [
+      sequelize.fn(
+        "GROUP_CONCAT",
+        sequelize.literal("DISTINCT `brand_name`")
+      ),
+      "brand_list",
+    ]
+  ],
     include: [
       {
         model: _DB.product_category,
         attributes: [
-          [
-            sequelize.fn(
-              "GROUP_CONCAT",
-              sequelize.literal("DISTINCT `category_name`")
-            ),
-            "category_list",
-          ],
+         
         ],
         through: {
           attributes: [],
@@ -235,15 +339,7 @@ const specific_product_type = async (product_type_id) => {
       },
       {
         model: _DB.product_brand,
-        attributes: [
-          [
-            sequelize.fn(
-              "GROUP_CONCAT",
-              sequelize.literal("DISTINCT `brand_name`")
-            ),
-            "brand_list",
-          ],
-        ],
+        attributes: [],
         through: {
           attributes: [],
         },
@@ -461,11 +557,10 @@ const update_brand = async (
 
 // test()
 
-
 module.exports = {
   create_product_type,
   delete_product_type,
   product_type_listing,
   specific_product_type,
-  update_product_type,
+  update_product_type
 };

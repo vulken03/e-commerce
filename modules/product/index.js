@@ -28,4 +28,10 @@ module.exports = (app) => {
     allowAdminOnly,
     product_service.update_product_type
   );
+
+  // app.get(
+  //   "/filter_product_type",
+  //   allowAdminOnly,
+  //   product_service.product_type_filter
+  // );
 };

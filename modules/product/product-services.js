@@ -2,6 +2,7 @@ const product_model = require("./product-model");
 const { constants } = require("../../utils/constant");
 const product_schema = require("./product-schema");
 const common = require("../../utils/common");
+const url = require("url");
 const create_product_type = async (req, res, next) => {
   try {
     const data = req.body;
@@ -38,12 +39,30 @@ const delete_product_type = async (req, res, next) => {
   }
 };
 
+// const product_type_filter= async (req, res, next) => {
+//   try {
+//     let Currenturl = url.parse(req.url, true);
+//     const data=Currenturl.query;
+//     const{category_name,brand_name}=data;
+//     const product_list = await product_model.product_type_filter({category_name,brand_name});
+//     res.status(constants.responseCodes.success).json({
+//       message: constants.responseMessage.success,
+//       product_list,
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
 const product_type_listing = async (req, res, next) => {
   try {
-    const product_list = await product_model.product_type_listing();
+    let Currenturl = url.parse(req.url, true);
+    const data=Currenturl.query;
+    const{category_name,brand_name}=data;
+    const product_type = await product_model.product_type_listing({category_name,brand_name});
     res.status(constants.responseCodes.success).json({
       message: constants.responseMessage.success,
-      product_list,
+      product_type,
     });
   } catch (err) {
     next(err);
@@ -87,6 +106,7 @@ const update_product_type = async (req, res, next) => {
     next(err);
   }
 };
+
 module.exports = {
   create_product_type,
   delete_product_type,

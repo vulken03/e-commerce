@@ -29,8 +29,7 @@ const create_product_data = async (specification_data) => {
       );
       if (add_product_details) {
         const findData = await _DB.product_type_attribute.findAll();
-        console.log(findData);
-        if (findData) {
+        if (findData.length!==0) {
           const specification_list = [];
           for (let i of findData) {
             specification_list.push({
@@ -39,11 +38,12 @@ const create_product_data = async (specification_data) => {
               value: specification_data[i.attribute_name],
             });
           }
+          
           const add_product_specification =
             await _DB.product_attribute_value.bulkCreate(specification_list, {
               transaction,
             });
-          if (add_product_specification) {
+          if (add_product_specification.length!==0) {
             await transaction.commit();
             return true;
           } else {
@@ -259,6 +259,8 @@ const update_product_type_attribute = async (
     throw err;
   }
 };
+
+
 module.exports = {
   create_product_type_attribute,
   create_product_data,
