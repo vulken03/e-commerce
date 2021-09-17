@@ -460,6 +460,8 @@ const update_brand = async (
 // }
 
 // test()
+
+
 module.exports = {
   create_product_type,
   delete_product_type,
