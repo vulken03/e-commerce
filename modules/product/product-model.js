@@ -171,19 +171,23 @@ const delete_product_type = async (product_type_id) => {
 
 const product_type_listing = async () => {
   const find_product_types = await _DB.product_type.findAll({
-    attributes: ["product_type_name"],
+    attributes: ["product_type_name", [
+      sequelize.fn(
+        "GROUP_CONCAT",
+        sequelize.literal("DISTINCT `category_name`")
+      ),
+      "category_list",
+    ], [
+      sequelize.fn(
+        "GROUP_CONCAT",
+        sequelize.literal("DISTINCT `brand_name`")
+      ),
+      "brand_list",
+    ]],
     include: [
       {
         model: _DB.product_category,
-        attributes: [
-          [
-            sequelize.fn(
-              "GROUP_CONCAT",
-              sequelize.literal("DISTINCT `category_name`")
-            ),
-            "category_list",
-          ],
-        ],
+        attributes: [],
         through: {
           attributes: [],
         },
@@ -191,13 +195,6 @@ const product_type_listing = async () => {
       {
         model: _DB.product_brand,
         attributes: [
-          [
-            sequelize.fn(
-              "GROUP_CONCAT",
-              sequelize.literal("DISTINCT `brand_name`")
-            ),
-            "brand_list",
-          ],
         ],
         through: {
           attributes: [],
@@ -451,6 +448,18 @@ const update_brand = async (
     throw new Error("error while finding with this product_type_id");
   }
 };
+// const test = async () => {
+//   const results = await _DB.sequelize.query("SELECT `product_type`.`product_type_name`, GROUP_CONCAT(DISTINCT `category_name`) AS `category_list`, GROUP_CONCAT(DISTINCT `brand_name`) AS `brand_list` FROM `product_type` AS `product_type` LEFT OUTER JOIN ( `type_category` AS `product_categories->type_category` INNER JOIN `product_category` AS `product_categories` ON `product_categories`.`category_id` = `product_categories->type_category`.`category_id`) ON `product_type`.`product_type_id` = `product_categories->type_category`.`product_type_id` LEFT OUTER JOIN ( `type_brand` AS `product_brands->type_brand` INNER JOIN `product_brand` AS `product_brands` ON `product_brands`.`brand_id` = `product_brands->type_brand`.`brand_id`) ON `product_type`.`product_type_id` = `product_brands->type_brand`.`product_type_id` GROUP BY `product_type`.`product_type_id`", {
+//     type: _DB.Sequelize.QueryTypes['SELECT']
+//   })
+//   let a = '';
+//   if (a == null) {
+//     console.log('aaaa')
+//   }
+//   console.log(results)
+// }
+
+// test()
 module.exports = {
   create_product_type,
   delete_product_type,

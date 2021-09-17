@@ -28,7 +28,7 @@ const config = convict({
     username: {
       doc: 'Database username',
       format: String,
-      default: 'admin'
+      default: 'root'
     },
     password: {
       doc: 'Database password',
