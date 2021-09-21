@@ -11,7 +11,7 @@ module.exports = (app) => {
     allowAdminOnly,
     attribute_service.add_product_specification
   );
-  app.get(
+  app.all(
     "/all_product_listing",
     allowAdminOnly,
     attribute_service.product_listing

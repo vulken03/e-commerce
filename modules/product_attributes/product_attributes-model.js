@@ -9,13 +9,20 @@ const create_product_data = async (specification_data) => {
       quantity,
       price,
       product_type_name,
+      brand_name,
     } = specification_data;
     const find_product_type = await _DB.product_type.findOne({
       where: {
         product_type_name,
       },
     });
-    if (find_product_type) {
+
+    const find_product_brand = await _DB.product_brand.findOne({
+      where: {
+        brand_name,
+      },
+    });
+    if (find_product_type && find_product_brand) {
       const add_product_details = await _DB.product.create(
         {
           product_name,
@@ -24,12 +31,17 @@ const create_product_data = async (specification_data) => {
           quantity,
           price,
           product_type_id: find_product_type.product_type_id,
+          brand_id: find_product_brand.brand_id,
         },
         { transaction }
       );
       if (add_product_details) {
-        const findData = await _DB.product_type_attribute.findAll();
-        if (findData.length!==0) {
+        const findData = await _DB.product_type_attribute.findAll({
+          where: {
+            product_type_id: find_product_type.product_type_id,
+          },
+        });
+        if (findData.length !== 0) {
           const specification_list = [];
           for (let i of findData) {
             specification_list.push({
@@ -38,12 +50,12 @@ const create_product_data = async (specification_data) => {
               value: specification_data[i.attribute_name],
             });
           }
-          
+
           const add_product_specification =
             await _DB.product_attribute_value.bulkCreate(specification_list, {
               transaction,
             });
-          if (add_product_specification.length!==0) {
+          if (add_product_specification.length !== 0) {
             await transaction.commit();
             return true;
           } else {
@@ -56,7 +68,9 @@ const create_product_data = async (specification_data) => {
         throw new Error("error while adding product details");
       }
     } else {
-      throw new Error("product type is not found");
+      throw new Error(
+        "product_type or product_category pr product_brand is is not found with given data"
+      );
     }
   } catch (err) {
     await transaction.rollback();
@@ -64,22 +78,70 @@ const create_product_data = async (specification_data) => {
   }
 };
 
-const product_listing = async () => {
+const product_listing = async ({
+  product_type_id,
+  brand_id,
+  // low_price,
+  // hogh_price,
+  product_name,
+}) => {
+  let filter = {
+    where: {},
+  };
+  if (product_type_id) {
+    filter.where.product_type_id = product_type_id;
+  }
+  if (brand_id) {
+    filter.where.brand_id = brand_id;
+  }
+
+  if (product_name) {
+    filter.where.product_name = product_name;
+  }
+
+  filter.attributes = [
+    "product_name",
+    "model_name",
+    "product_description",
+    "quantity",
+    "price",
+
+    [
+      sequelize.literal(
+        `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
+                              product_type_attribute.attribute_name,
+                              'attribute_value',
+                              product_attribute_value.value))
+      FROM
+          product_type_attribute
+              LEFT JOIN
+          product_attribute_value ON product_type_attribute.attribute_id = product_attribute_value.attribute_id)
+      `
+      ),
+      "attribute_list",
+    ],
+  ];
+
   const all_products = await _DB.product.findAll({
-    attributes:["product_name","model_name","product_description","quantity","price",
-      [
-        sequelize.literal(
-          `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
-                                product_type_attribute.attribute_name,
-                                'attribute_value',
-                                product_attribute_value.value))
-        FROM
-            product_type_attribute
-                LEFT JOIN
-            product_attribute_value ON product_type_attribute.attribute_id = product_attribute_value.attribute_id)
-        `),'attribute_list'
-      ]
-    ]
+    filter,
+    include: [
+      {
+        model: _DB.product_brand,
+        attributes: ["brand_name"],
+      },
+
+      {
+        model: _DB.product_type,
+        attributes: ["product_type_name"],
+        include: {
+          model: _DB.product_category,
+          attributes: ["category_name"],
+          through: {
+            attributes: [],
+          },
+        },
+      },
+    ],
   });
 
   // await _DB.product_type_attribute.findAll({
@@ -259,7 +321,6 @@ const update_product_type_attribute = async (
     throw err;
   }
 };
-
 
 module.exports = {
   create_product_type_attribute,

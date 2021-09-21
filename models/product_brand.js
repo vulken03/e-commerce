@@ -18,6 +18,9 @@ module.exports = (sequelize, Sequelize) => {
       foreignKey: "brand_id",
       otherKey:"product_type_id"
     });
+    product_brand.hasMany(models.product, {
+      foreignKey: "brand_id",
+    });
   };
   return product_brand;
 };

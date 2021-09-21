@@ -1,3 +1,4 @@
+const url = require("url");
 const product_attributes_model = require("./product_attributes-model");
 const product_attributes_schema = require("./product_attributes-schema");
 const common = require("../../utils/common");
@@ -49,7 +50,16 @@ const add_product_specification = async (req, res, next) => {
 
 const product_listing = async (req, res, next) => {
   try {
-    const all_products = await product_attributes_model.product_listing();
+    let Currenturl = url.parse(req.url, true);
+    const data = Currenturl.query;
+    // const { isValid, error } = common.schemaValidator(
+    //   data,
+    //   product_attributes_schema.get_product_schema
+    // );
+    // if (!isValid) {
+    //   return next(error);
+    // }
+    const all_products = await product_attributes_model.product_listing(data);
     res.status(constants.responseCodes.success).json({
       message: constants.responseMessage.success,
       all_products,

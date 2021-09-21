@@ -32,12 +32,17 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
+    brand_id: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
   });
   product.associate = (models) => {
     product.hasMany(models.product_attribute_value, {
       foreignKey: "product_id",
     });
     product.belongsTo(models.product_type, { foreignKey: "product_type_id" });
+    product.belongsTo(models.product_brand, { foreignKey: "brand_id" });
   };
   return product;
 };

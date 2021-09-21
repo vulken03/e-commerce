@@ -75,14 +75,29 @@ const create_specification_schema = {
       "model_name",
       "product_description",
       "quantity",
-      "price",
-      "ram",
-      "screen_size",
+      "price"
     ],
   },
 };
+
+// get_product_schema = {
+//   type: "object",
+//   properties: {
+//     product_type_id: {
+//       type: "integer",
+//     },
+//     brand_id: {
+//       type: "integer",
+//     },
+//     brand_name: {
+//       type: "string",
+//     },
+//     required: ["product_type_id"],
+//   },
+// };
 module.exports = {
   create_attribute_schema,
   create_specification_schema,
-  update_attribute_schema
+  update_attribute_schema,
+  //get_product_schema,
 };
