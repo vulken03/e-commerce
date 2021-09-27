@@ -1,4 +1,5 @@
 const sequelize = require("sequelize");
+const helper = require("../../utils/helper");
 const create_product_data = async (specification_data) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -78,13 +79,10 @@ const create_product_data = async (specification_data) => {
   }
 };
 
-const product_listing = async ({
-  product_type_id,
-  brand_id,
-  // low_price,
-  // hogh_price,
-  product_name,
-}) => {
+const product_listing = async (
+  { product_type_id, brand_id, low_price, high_price, product_name },
+  { sortby = {}, pagination = {} }
+) => {
   let filter = {
     where: {},
   };
@@ -99,6 +97,12 @@ const product_listing = async ({
     filter.where.product_name = product_name;
   }
 
+  if (low_price) {
+  }
+  if (high_price) {
+  }
+  if (low_price && high_price) {
+  }
   filter.attributes = [
     "product_name",
     "model_name",
@@ -113,17 +117,28 @@ const product_listing = async ({
                               'attribute_value',
                               product_attribute_value.value))
       FROM
-          product_type_attribute
+          product_attribute_value
               LEFT JOIN
-          product_attribute_value ON product_type_attribute.attribute_id = product_attribute_value.attribute_id)
+          product_type_attribute ON product_attribute_value.attribute_id = product_type_attribute.attribute_id)
       `
       ),
       "attribute_list",
     ],
   ];
+  filter.order = helper.getSortFilter(sortby);
+
+  if ("page" in pagination && "limit" in pagination) {
+    page = Number(pagination.page);
+    filter.offset = Number((pagination.page - 1) * pagination.limit);
+    filter.limit = Number(pagination.limit);
+  }
 
   const all_products = await _DB.product.findAll({
-    filter,
+    where: filter.where,
+    offset: filter.offset,
+    limit: filter.limit,
+    order: filter.order,
+    attributes: filter.attributes,
     include: [
       {
         model: _DB.product_brand,
@@ -144,9 +159,6 @@ const product_listing = async ({
     ],
   });
 
-  // await _DB.product_type_attribute.findAll({
-  //   attributes:[]
-  // })
   if (all_products.length >= 0) {
     return all_products;
   } else {

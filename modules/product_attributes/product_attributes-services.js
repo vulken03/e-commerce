@@ -52,6 +52,7 @@ const product_listing = async (req, res, next) => {
   try {
     let Currenturl = url.parse(req.url, true);
     const data = Currenturl.query;
+    const filters = req.body || {};
     // const { isValid, error } = common.schemaValidator(
     //   data,
     //   product_attributes_schema.get_product_schema
@@ -59,7 +60,10 @@ const product_listing = async (req, res, next) => {
     // if (!isValid) {
     //   return next(error);
     // }
-    const all_products = await product_attributes_model.product_listing(data);
+    const all_products = await product_attributes_model.product_listing(
+      data,
+      filters
+    );
     res.status(constants.responseCodes.success).json({
       message: constants.responseMessage.success,
       all_products,
