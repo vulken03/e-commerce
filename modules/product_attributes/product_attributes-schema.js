@@ -80,24 +80,24 @@ const create_specification_schema = {
   },
 };
 
-// get_product_schema = {
-//   type: "object",
-//   properties: {
-//     product_type_id: {
-//       type: "integer",
-//     },
-//     brand_id: {
-//       type: "integer",
-//     },
-//     brand_name: {
-//       type: "string",
-//     },
-//     required: ["product_type_id"],
-//   },
-// };
+get_product_schema = {
+  type: "object",
+  properties: {
+    product_type_id: {
+      type: "string",
+    },
+    brand_id: {
+      type: "string",
+    },
+    brand_name: {
+      type: "string",
+    },
+    required: ["product_type_id"],
+  },
+};
 module.exports = {
   create_attribute_schema,
   create_specification_schema,
   update_attribute_schema,
-  //get_product_schema,
+  get_product_schema,
 };

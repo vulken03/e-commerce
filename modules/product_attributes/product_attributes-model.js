@@ -1,5 +1,6 @@
 const sequelize = require("sequelize");
 const helper = require("../../utils/helper");
+const { Op } = require("sequelize");
 const create_product_data = async (specification_data) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -80,7 +81,7 @@ const create_product_data = async (specification_data) => {
 };
 
 const product_listing = async (
-  { product_type_id, brand_id, low_price, high_price, product_name },
+  { product_type_id, brand_id, product_name, low_price, high_price, ram_value },
   { sortby = {}, pagination = {} }
 ) => {
   let filter = {
@@ -98,11 +99,15 @@ const product_listing = async (
   }
 
   if (low_price) {
+    filter.where.price = { [Op.gte]: low_price };
   }
   if (high_price) {
+    filter.where.price = { [Op.lte]: high_price };
   }
   if (low_price && high_price) {
+    filter.where.price = { [Op.between]: [low_price, high_price] };
   }
+
   filter.attributes = [
     "product_name",
     "model_name",
@@ -119,12 +124,15 @@ const product_listing = async (
       FROM
           product_attribute_value
               LEFT JOIN
-          product_type_attribute ON product_attribute_value.attribute_id = product_type_attribute.attribute_id)
-      `
+          product_type_attribute ON product_attribute_value.attribute_id = product_type_attribute.attribute_id
+          where
+          product_attribute_value.product_id=product.product_id)
+          `
       ),
       "attribute_list",
     ],
   ];
+
   filter.order = helper.getSortFilter(sortby);
 
   if ("page" in pagination && "limit" in pagination) {
@@ -132,37 +140,62 @@ const product_listing = async (
     filter.offset = Number((pagination.page - 1) * pagination.limit);
     filter.limit = Number(pagination.limit);
   }
+  filter.include = {
+    model: _DB.product_attribute_value,
+    attributes: [],
+    include: {
+      model: _DB.product_type_attribute,
+      attributes: [],
+    },
+  };
 
-  const all_products = await _DB.product.findAll({
-    where: filter.where,
-    offset: filter.offset,
-    limit: filter.limit,
-    order: filter.order,
-    attributes: filter.attributes,
-    include: [
+  if (ram_value) {
+    const result = await _DB.sequelize.query(
+      `SELECT 
+    p.product_name,
+    p.product_id,
+    (SELECT 
+            JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
+                                product_type_attribute.attribute_name,
+                                'attribute_value',
+                                product_attribute_value.value))
+        FROM
+            product_attribute_value
+                JOIN
+            product_type_attribute ON product_type_attribute.attribute_id = product_attribute_value.attribute_id
+              where
+             product_attribute_value.product_id=p.product_id
+            ) AS attribute_list
+FROM
+    product AS p
+        JOIN
+    product_attribute_value AS pav ON pav.product_id = p.product_id
+        JOIN
+    product_type_attribute AS pta ON pta.attribute_id = pav.attribute_id
+    and pta.attribute_name='ram'
+    and pav.value='${ram_value}'
+GROUP BY p.product_id
+`,
       {
-        model: _DB.product_brand,
-        attributes: ["brand_name"],
-      },
-
-      {
-        model: _DB.product_type,
-        attributes: ["product_type_name"],
-        include: {
-          model: _DB.product_category,
-          attributes: ["category_name"],
-          through: {
-            attributes: [],
-          },
-        },
-      },
-    ],
-  });
-
-  if (all_products.length >= 0) {
-    return all_products;
+        type: _DB.Sequelize.QueryTypes["SELECT"],
+      }
+    );
+    return result;
   } else {
-    throw new Error("error while getting all products");
+    const all_products = await _DB.product.findAll({
+      where: filter.where,
+      offset: filter.offset,
+      limit: filter.limit,
+      order: filter.order,
+      attributes: filter.attributes,
+      include: filter.include,
+      group: "product.product_id",
+    });
+    if (all_products.length >= 0) {
+      return all_products;
+    } else {
+      throw new Error("error while getting all products");
+    }
   }
 };
 
