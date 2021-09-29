@@ -79,7 +79,11 @@ const create_product_data = async (specification_data) => {
     throw err;
   }
 };
-
+// { sortby = {}, pagination = {}, ...filter }
+/* {
+  ram: ['1GB','2GB'],
+  screen_size: []
+} */
 const product_listing = async (
   { product_type_id, brand_id, product_name, low_price, high_price, ram_value },
   { sortby = {}, pagination = {} }

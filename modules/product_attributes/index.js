@@ -11,6 +11,10 @@ module.exports = (app) => {
     allowAdminOnly,
     attribute_service.add_product_specification
   );
+  // product/add
+  // product/list
+  // product/update
+  // product/view
   app.all(
     "/all_product_listing",
     allowAdminOnly,

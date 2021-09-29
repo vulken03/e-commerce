@@ -8,14 +8,24 @@ const create_admin = async (admin_data) => {
   if (admin_creation) {
     return true;
   } else {
+    /* return {
+      success: false,
+      data: null,
+      error: new Error("error while creating admin"),
+      message: 'error while creating admin' // not required when success is true
+    } */
     throw new Error("error while creating admin");
   }
 };
 
-const createSessionAdmin = async ({ admin }) => {
-  const adminId = admin.admin_id;
+// outcome 1 - direct data
+// outcome 2 - true/false
+// outcome 3 - object with status, data, error, message
+// const private_method = async () => {}
+
+const createSessionAdmin = async ({ admin_id }) => {
   const session = await _DB.session.create({
-    user_id: adminId,
+    user_id: admin_id,
     login_time: +moment().unix(),
     time_to_leave: +moment().add(1, "days").unix(),
     is_loggedout: 0,
@@ -27,7 +37,8 @@ const createSessionAdmin = async ({ admin }) => {
     throw new Error("error while creating session");
   }
 };
-
+// ({ uuid, isAdmin, ...user_details })
+// generateJwtToken({ uuid, isAdmin, username, admin_id, email })
 const generateJwtToken = async ({ username, admin_id }, uuid, isAdmin) => {
   const adminId = admin_id;
   const token = jwt.sign(
@@ -64,7 +75,7 @@ const admin_login = async ({ username, password }) => {
       admin.password.split(":")[0]
     );
     if (isValidate) {
-      const session = await createSessionAdmin({ admin });
+      const session = await createSessionAdmin({ admin_id: admin.admin_id });
       if (session) {
         const { uuid, is_admin } = session;
         const jwt = await generateJwtToken(admin , uuid, is_admin);

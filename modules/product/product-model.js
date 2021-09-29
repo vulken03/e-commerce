@@ -54,6 +54,7 @@ const create_product_type = async (productData) => {
     throw err;
   }
 };
+// { product_type_id, product_category_list, sql_tran }
 const create_category = async (
   create_product_type,
   product_category_list,
