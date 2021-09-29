@@ -31,7 +31,65 @@ const update_product_type_schema = {
   },
   required: ["product_type_name"],
 };
+const create_specification_schema = {
+  type: "object",
+  properties: {
+    product_name: {
+      type: "string",
+      maxLength: 60,
+    },
+    model_name: {
+      type: "string",
+      maxLength: 60,
+    },
+    product_description: {
+      type: "string",
+      maxLength: 60,
+    },
+
+    quantity: {
+      type: "integer",
+    },
+
+    price: {
+      type: "integer",
+      maximum: 100000,
+      minimum: 5000,
+    },
+    ram: {
+      type: "string",
+    },
+    screen_size: {
+      type: "string",
+    },
+
+    required: [
+      "product_name",
+      "model_name",
+      "product_description",
+      "quantity",
+      "price"
+    ],
+  },
+};
+get_product_schema = {
+  type: "object",
+  properties: {
+    product_type_id: {
+      type: "string",
+    },
+    brand_id: {
+      type: "string",
+    },
+    brand_name: {
+      type: "string",
+    },
+    required: ["product_type_id"],
+  },
+};
 module.exports = {
   productSchema,
   update_product_type_schema,
+  create_specification_schema,
+  get_product_schema,
 };

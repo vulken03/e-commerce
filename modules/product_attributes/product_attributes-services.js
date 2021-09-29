@@ -26,107 +26,6 @@ const add_product_type_attributes = async (req, res, next) => {
   }
 };
 
-const add_product_specification = async (req, res, next) => {
-  try {
-    const data = req.body;
-    const { isValid, error } = common.schemaValidator(
-      data,
-      product_attributes_schema.create_specification_schema
-    );
-    if (!isValid) {
-      return next(error);
-    }
-
-    const add_specifications =
-      await product_attributes_model.create_product_data(data);
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      add_specifications,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-const product_listing = async (req, res, next) => {
-  try {
-    let Currenturl = url.parse(req.url, true);
-    const data = Currenturl.query;
-    const filters = req.body || {};
-    // const { isValid, error } = common.schemaValidator(
-    //   data,
-    //   product_attributes_schema.get_product_schema
-    // );
-    // if (!isValid) {
-    //   return next(error);
-    // }
-    const all_products = await product_attributes_model.product_listing(
-      data,
-      filters
-    );
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      all_products,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-const specific_product_listing = async (req, res, next) => {
-  try {
-    const specific_product =
-      await product_attributes_model.specific_product_listing(
-        req.params.product_id
-      );
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      specific_product,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-const delete_product = async (req, res, next) => {
-  try {
-    const product_deletion = await product_attributes_model.delete_product(
-      req.params.product_id
-    );
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      product_deletion,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-const update_product = async (req, res, next) => {
-  try {
-    const data = req.body;
-    const product_id = req.params.product_id;
-    const { isValid, error } = common.schemaValidator(
-      data,
-      product_attributes_schema.create_specification_schema
-    );
-    if (!isValid) {
-      return next(error);
-    }
-
-    const product_updation = await product_attributes_model.update_product(
-      product_id,
-      data
-    );
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      product_updation,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const update_product_type_attributes = async (req, res, next) => {
   try {
     const data = req.body;
@@ -154,10 +53,5 @@ const update_product_type_attributes = async (req, res, next) => {
 };
 module.exports = {
   add_product_type_attributes,
-  add_product_specification,
-  product_listing,
-  specific_product_listing,
-  delete_product,
-  update_product,
   update_product_type_attributes,
 };

@@ -1,5 +1,6 @@
 const sequelize = require("sequelize");
-const{Op}=require('sequelize')
+const { Op } = require("sequelize");
+const helper = require("../../utils/helper");
 const create_product_type = async (productData) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -12,9 +13,14 @@ const create_product_type = async (productData) => {
       },
     });
     if (find_product_type) {
-      throw new Error(
-        "product_type is already created with this product_type_name"
-      );
+      return {
+        success: false,
+        data: null,
+        error: new Error(
+          "product_type is already created with give product_type_name"
+        ),
+        message: "product_type is already created with give product_type_name",
+      };
     }
 
     const create_product_type = await _DB.product_type.create(
@@ -42,12 +48,25 @@ const create_product_type = async (productData) => {
       if (m1 && m2) {
         //console.log(typeof m1);
         await transaction.commit();
-        return true;
+        return {
+          success: true,
+          data: create_product_type,
+        };
       } else {
-        throw new Error("error while creating catagery or brand");
+        return {
+          success: false,
+          data: null,
+          error: new Error("error while creating category or brand"),
+          message: "error while creating category or brand", // not required when success is true
+        };
       }
     } else {
-      throw new Error("error while creating product_category");
+      return {
+        success: false,
+        data: null,
+        error: new Error("error while creating product_type"),
+        message: "error while creating product_type", // not required when success is true
+      };
     }
   } catch (err) {
     await transaction.rollback();
@@ -96,7 +115,7 @@ const create_category = async (
   if (create_category) {
     return true;
   } else {
-    throw new Error("error while creating product_category");
+    return false;
   }
 };
 const create_brand = async (
@@ -139,7 +158,7 @@ const create_brand = async (
   if (create_brand) {
     return true;
   } else {
-    throw new Error("error while creating product_brand");
+    return false;
   }
 };
 
@@ -162,104 +181,124 @@ const delete_product_type = async (product_type_id) => {
       },
     });
     if (product_type_deletion) {
-      return true;
+      return {
+        success: true,
+        data: null,
+      };
     } else {
-      throw new Error("error while deleting...");
+      return {
+        success: false,
+        data: null,
+        error: new Error("error while deleting..."),
+        message: "error while deleting...", // not required when success is true
+      };
     }
   } else {
-    throw new Error("attribute is found with this product_type");
+    return {
+      success: false,
+      data: null,
+      error: new Error("attribute is found with given product_type"),
+      message: "attribute is found with given product_type", // not required when success is true
+    };
   }
 };
 
-const product_type_listing = async ({category_name,brand_name}) => {
-  const filter={}
-   
-  if(category_name&&!brand_name){
- 
-    filter.attributes=["product_type_name"],
-    filter.include={
-      model:_DB.product_category,
-      where:{
-        category_name
-      },
-      attributes:[],
-      through:{attributes:[]}
-    },
-    filter.raw=true
-  }else if(brand_name&&!category_name){
-    filter.attributes=["product_type_name"],
-    filter.include={
-      model:_DB.product_brand,
-      where:{
-        brand_name
-      },
-      attributes:[],
-      through:{attributes:[]}
-    },
-    filter.raw=true
-  }else if(category_name&&brand_name){
-    filter.attributes=['product_type_name'],
-    filter.include=[
-      {
-         model:_DB.product_category,
-         where:{
-           category_name
-         },
-         attributes:[],
-        through:{attributes:[]}
-      },
-      {
-        model:_DB.product_brand,
-        where:{
-          brand_name
-        },
-         attributes:[],
-        through:{attributes:[]}
-      }           
-    ],
-    filter.raw=true
-  }else{
-    filter.attributes=["product_type_name",[
-      sequelize.fn(
-        "GROUP_CONCAT",
-        sequelize.literal("DISTINCT `category_name`")
-      ),
-      "category_list",
-    ],
-    [
-      sequelize.fn(
-        "GROUP_CONCAT",
-        sequelize.literal("DISTINCT `brand_name`")
-      ),
-      "brand_list",
-    ]],
-    filter.include=[
-      {
+const product_type_listing = async ({ category_name, brand_name }) => {
+  const filter = {};
+
+  if (category_name && !brand_name) {
+    (filter.attributes = ["product_type_name"]),
+      (filter.include = {
         model: _DB.product_category,
+        where: {
+          category_name,
+        },
         attributes: [],
-        through: {
-          attributes: [],
-        },
-      },
-      {
+        through: { attributes: [] },
+      }),
+      (filter.raw = true);
+  } else if (brand_name && !category_name) {
+    (filter.attributes = ["product_type_name"]),
+      (filter.include = {
         model: _DB.product_brand,
-        attributes: [
-        ],
-        through: {
-          attributes: [],
+        where: {
+          brand_name,
         },
-      },
-    ],
-    filter.raw=true
-    filter.group="product_type.product_type_id"
-  }
-  const find_product_types = await _DB.product_type.findAll(
-    filter
-);
-  if (find_product_types.length >= 0) {
-    return find_product_types;
+        attributes: [],
+        through: { attributes: [] },
+      }),
+      (filter.raw = true);
+  } else if (category_name && brand_name) {
+    (filter.attributes = ["product_type_name"]),
+      (filter.include = [
+        {
+          model: _DB.product_category,
+          where: {
+            category_name,
+          },
+          attributes: [],
+          through: { attributes: [] },
+        },
+        {
+          model: _DB.product_brand,
+          where: {
+            brand_name,
+          },
+          attributes: [],
+          through: { attributes: [] },
+        },
+      ]),
+      (filter.raw = true);
   } else {
-    throw new Error("error while product type listing");
+    (filter.attributes = [
+      "product_type_name",
+      [
+        sequelize.fn(
+          "GROUP_CONCAT",
+          sequelize.literal("DISTINCT `category_name`")
+        ),
+        "category_list",
+      ],
+      [
+        sequelize.fn(
+          "GROUP_CONCAT",
+          sequelize.literal("DISTINCT `brand_name`")
+        ),
+        "brand_list",
+      ],
+    ]),
+      (filter.include = [
+        {
+          model: _DB.product_category,
+          attributes: [],
+          through: {
+            attributes: [],
+          },
+        },
+        {
+          model: _DB.product_brand,
+          attributes: [],
+          through: {
+            attributes: [],
+          },
+        },
+      ]),
+      (filter.raw = true);
+    filter.group = "product_type.product_type_id";
+  }
+  const find_product_types = await _DB.product_type.findAll(filter);
+  if (find_product_types.length >= 0) {
+    return {
+      success: true,
+      data: find_product_types,
+    };
+  } else {
+    return {
+      success: false,
+      data: null,
+      error: new Error("error while finding product_type"),
+      message: "error while finding product_type", // not required when success is true
+    };
   }
 };
 
@@ -312,28 +351,27 @@ const specific_product_type = async (product_type_id) => {
     where: {
       product_type_id,
     },
-    attributes: ["product_type_name",
-    [
-      sequelize.fn(
-        "GROUP_CONCAT",
-        sequelize.literal("DISTINCT `category_name`")
-      ),
-      "category_list",
+    attributes: [
+      "product_type_name",
+      [
+        sequelize.fn(
+          "GROUP_CONCAT",
+          sequelize.literal("DISTINCT `category_name`")
+        ),
+        "category_list",
+      ],
+      [
+        sequelize.fn(
+          "GROUP_CONCAT",
+          sequelize.literal("DISTINCT `brand_name`")
+        ),
+        "brand_list",
+      ],
     ],
-    [
-      sequelize.fn(
-        "GROUP_CONCAT",
-        sequelize.literal("DISTINCT `brand_name`")
-      ),
-      "brand_list",
-    ]
-  ],
     include: [
       {
         model: _DB.product_category,
-        attributes: [
-         
-        ],
+        attributes: [],
         through: {
           attributes: [],
         },
@@ -349,10 +387,20 @@ const specific_product_type = async (product_type_id) => {
     group: "product_type.product_type_id",
     raw: true,
   });
-  if (find_product_type.length>=0) {
-    return find_product_type;
+  if (find_product_type.length >= 0) {
+    return {
+      success: true,
+      data: find_product_type,
+    };
   } else {
-    throw new Error("product type is not found with this product_type_id");
+    return {
+      success: false,
+      data: null,
+      error: new Error(
+        "error while find product_type with given product_type_id"
+      ),
+      message: "error while find product_type with given product_type_id",
+    };
   }
 };
 
@@ -385,15 +433,35 @@ const update_product_type = async (product_type_id, product_type_data) => {
         const [m1, m2] = await Promise.all([category, brand]);
         if (m1 && m2) {
           await transaction.commit();
-          return true;
+          return {
+            success: true,
+            data: null,
+          };
         } else {
-          throw new Error("error while creating category or brand..");
+          return {
+            success: false,
+            data: null,
+            error: new Error("error while updating category and brand"),
+            message: "error while updating category and brand",
+          };
         }
       } else {
-        throw new Error("error while updating product_type...");
+        return {
+          success: false,
+          data: null,
+          error: new Error("error while updating product_type"),
+          message: "error while updating product_type",
+        };
       }
     } else {
-      throw new Error("product_type is not found with this product_type_id");
+      return {
+        success: false,
+        data: null,
+        error: new Error(
+          "product_type is not found with given product_type_id"
+        ),
+        message: "product_type is not found with given product_type_id",
+      };
     }
   } catch (err) {
     await transaction.rollback();
@@ -460,18 +528,36 @@ const update_category = async (
         { transcation }
       );
       if (create_type_category) {
-        return true;
+        return {
+          success: true,
+          data: null,
+        };
       } else {
-        throw new Error("error while creating type category");
+        return {
+          success: false,
+          data: null,
+          error: new Error("error while creating type_category"),
+          message: "error while creating type_category",
+        };
       }
     } else {
-      throw new Error("error while creating category..");
+      return {
+        success: false,
+        data: null,
+        error: new Error("error while updating category"),
+        message: "error updating category",
+      };
     }
     // } else {
     //  throw new Error("error while deletion");
     //}
   } else {
-    throw new Error("error while finding with this product_type_id");
+    return {
+      success: false,
+      data: null,
+      error: new Error("error while finding with this product_type_id"),
+      message: "error while finding with this product_type_id",
+    };
   }
 };
 
@@ -531,12 +617,25 @@ const update_brand = async (
         { transcation }
       );
       if (create_type_brand) {
-        return true;
+        return {
+          success: true,
+          data: null,
+        };
       } else {
-        throw new Error("error while creating type brand");
+        return {
+          success: false,
+          data: null,
+          error: new Error("error while creating type_brand"),
+          message: "error while creating type_brand",
+        };
       }
     } else {
-      throw new Error("error while creating brand..");
+      return {
+        success: false,
+        data: null,
+        error: new Error("error while updating brand"),
+        message: "error while updating brand",
+      };
     }
     //} else {
     //throw new Error("error while deletion");
@@ -558,10 +657,275 @@ const update_brand = async (
 
 // test()
 
+const create_product_data = async (specification_data) => {
+  const transaction = await _DB.sequelize.transaction();
+  try {
+    const {
+      product_name,
+      model_name,
+      product_description,
+      quantity,
+      price,
+      product_type_name,
+      brand_name,
+    } = specification_data;
+    const find_product_type = await _DB.product_type.findOne({
+      where: {
+        product_type_name,
+      },
+    });
+
+    const find_product_brand = await _DB.product_brand.findOne({
+      where: {
+        brand_name,
+      },
+    });
+    if (find_product_type && find_product_brand) {
+      const add_product_details = await _DB.product.create(
+        {
+          product_name,
+          model_name,
+          product_description,
+          quantity,
+          price,
+          product_type_id: find_product_type.product_type_id,
+          brand_id: find_product_brand.brand_id,
+        },
+        { transaction }
+      );
+      if (add_product_details) {
+        const findData = await _DB.product_type_attribute.findAll({
+          where: {
+            product_type_id: find_product_type.product_type_id,
+          },
+        });
+        if (findData.length !== 0) {
+          const specification_list = [];
+          for (let i of findData) {
+            specification_list.push({
+              product_id: add_product_details.product_id,
+              attribute_id: i.attribute_id,
+              value: specification_data[i.attribute_name],
+            });
+          }
+
+          const add_product_specification =
+            await _DB.product_attribute_value.bulkCreate(specification_list, {
+              transaction,
+            });
+          if (add_product_specification.length !== 0) {
+            await transaction.commit();
+            return true;
+          } else {
+            throw new Error("error while creating specifications");
+          }
+        } else {
+          throw new Error("no data available");
+        }
+      } else {
+        throw new Error("error while adding product details");
+      }
+    } else {
+      throw new Error(
+        "product_type or product_category pr product_brand is is not found with given data"
+      );
+    }
+  } catch (err) {
+    await transaction.rollback();
+    throw err;
+  }
+};
+//improve
+const product_listing = async (
+  { product_type_id, brand_id, product_name, low_price, high_price, ram_value },
+  { sortby = {}, pagination = {} }
+) => {
+  let filter = {
+    where: {},
+  };
+  if (product_type_id) {
+    filter.where.product_type_id = product_type_id;
+  }
+  if (brand_id) {
+    filter.where.brand_id = brand_id;
+  }
+
+  if (product_name) {
+    filter.where.product_name = product_name;
+  }
+
+  if (low_price) {
+    filter.where.price = { [Op.gte]: low_price };
+  }
+  if (high_price) {
+    filter.where.price = { [Op.lte]: high_price };
+  }
+  if (low_price && high_price) {
+    filter.where.price = { [Op.between]: [low_price, high_price] };
+  }
+
+  filter.attributes = [
+    "product_name",
+    "model_name",
+    "product_description",
+    "quantity",
+    "price",
+
+    [
+      sequelize.literal(
+        `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
+                              product_type_attribute.attribute_name,
+                              'attribute_value',
+                              product_attribute_value.value))
+      FROM
+          product_attribute_value
+              LEFT JOIN
+          product_type_attribute ON product_attribute_value.attribute_id = product_type_attribute.attribute_id
+          where
+          product_attribute_value.product_id=product.product_id)
+          `
+      ),
+      "attribute_list",
+    ],
+  ];
+
+  filter.order = helper.getSortFilter(sortby);
+
+  if ("page" in pagination && "limit" in pagination) {
+    page = Number(pagination.page);
+    filter.offset = Number((pagination.page - 1) * pagination.limit);
+    filter.limit = Number(pagination.limit);
+  }
+  filter.include = {
+    model: _DB.product_attribute_value,
+    attributes: [],
+    include: {
+      model: _DB.product_type_attribute,
+      attributes: [],
+    },
+  };
+
+  if (ram_value) {
+    const result = await _DB.sequelize.query(
+      `SELECT 
+    p.product_name,
+    p.product_id,
+    (SELECT 
+            JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
+                                product_type_attribute.attribute_name,
+                                'attribute_value',
+                                product_attribute_value.value))
+        FROM
+            product_attribute_value
+                JOIN
+            product_type_attribute ON product_type_attribute.attribute_id = product_attribute_value.attribute_id
+              where
+             product_attribute_value.product_id=p.product_id
+            ) AS attribute_list
+FROM
+    product AS p
+        JOIN
+    product_attribute_value AS pav ON pav.product_id = p.product_id
+        JOIN
+    product_type_attribute AS pta ON pta.attribute_id = pav.attribute_id
+    and pta.attribute_name='ram'
+    and pav.value='${ram_value}'
+GROUP BY p.product_id
+`,
+      {
+        type: _DB.Sequelize.QueryTypes["SELECT"],
+      }
+    );
+    return result;
+  } else {
+    const all_products = await _DB.product.findAll({
+      where: filter.where,
+      offset: filter.offset,
+      limit: filter.limit,
+      order: filter.order,
+      attributes: filter.attributes,
+      include: filter.include,
+      group: "product.product_id",
+    });
+    if (all_products.length >= 0) {
+      return all_products;
+    } else {
+      throw new Error("error while getting all products");
+    }
+  }
+};
+
+const specific_product_listing = async (product_id) => {
+  const specific_product = await _DB.product.findOne({
+    where: {
+      product_id,
+    },
+    include: {
+      model: _DB.product_attribute_value,
+      attributes: ["value"],
+      include: {
+        model: _DB.product_type_attribute,
+        attributes: ["attribute_name"],
+      },
+    },
+    raw: true,
+  });
+  if (specific_product.length >= 0) {
+    return specific_product;
+  } else {
+    throw new Error(`don't find product with this product_id`);
+  }
+};
+
+const delete_product = async (product_id) => {
+  const find_product = await _DB.product.findOne({
+    where: {
+      product_id,
+    },
+  });
+  if (find_product) {
+    const product_delete = await find_product.destroy();
+    if (product_delete) {
+      return true;
+    } else {
+      throw new Error("error while deleting");
+    }
+  } else {
+    throw new Error("product is not found whit this product_id");
+  }
+};
+
+const update_product = async (product_id, product_data) => {
+  const find_product = await _DB.product.findOne({
+    where: {
+      product_id,
+    },
+  });
+  if (find_product) {
+    await find_product.update(product_data, {
+      fields: [
+        "product_name",
+        "model_name",
+        "product_description",
+        "price",
+        "quantity",
+      ],
+    });
+    return true;
+  } else {
+    throw new Error("attribute is not found with this product_id");
+  }
+};
+
 module.exports = {
   create_product_type,
   delete_product_type,
   product_type_listing,
   specific_product_type,
-  update_product_type
+  update_product_type,
+  create_product_data,
+  product_listing,
+  specific_product_listing,
+  delete_product,
+  update_product,
 };

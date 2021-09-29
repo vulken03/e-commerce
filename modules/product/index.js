@@ -2,7 +2,7 @@ const { allowAdminOnly } = require("../../utils/common");
 const product_service = require("./product-services");
 module.exports = (app) => {
   app.post(
-    "/create_product",
+    "/create_product_type",
     allowAdminOnly,
     product_service.create_product_type
   );
@@ -29,9 +29,33 @@ module.exports = (app) => {
     product_service.update_product_type
   );
 
-  // app.get(
-  //   "/filter_product_type",
-  //   allowAdminOnly,
-  //   product_service.product_type_filter
-  // );
+  app.post(
+    "/add_specifications",
+    allowAdminOnly,
+    product_service.add_product_specification
+  );
+
+  app.all(
+    "/all_product_listing",
+    allowAdminOnly,
+    product_service.product_listing
+  );
+
+  app.get(
+    "/specific_product_listing/:product_id",
+    allowAdminOnly,
+    product_service.specific_product_listing
+  );
+
+  app.delete(
+    "/delete_product/:product_id",
+    allowAdminOnly,
+    product_service.delete_product
+  );
+
+  app.put(
+    "/update_product/:product_id",
+    allowAdminOnly,
+    product_service.update_product
+  );
 };
