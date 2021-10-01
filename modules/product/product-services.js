@@ -57,9 +57,12 @@ const delete_product_type = async (req, res, next) => {
 const product_type_listing = async (req, res, next) => {
   try {
     let Currenturl = url.parse(req.url, true);
-    const data=Currenturl.query;
-    const{category_name,brand_name}=data;
-    const product_type = await product_model.product_type_listing({category_name,brand_name});
+    const data = Currenturl.query;
+    const { category_name, brand_name } = data;
+    const product_type = await product_model.product_type_listing({
+      category_name,
+      brand_name,
+    });
     res.status(constants.responseCodes.success).json({
       message: constants.responseMessage.success,
       product_type,
@@ -118,8 +121,7 @@ const add_product_specification = async (req, res, next) => {
       return next(error);
     }
 
-    const add_specifications =
-      await product_model.create_product_data(data);
+    const add_specifications = await product_model.create_product_data(data);
     res.status(constants.responseCodes.success).json({
       message: constants.responseMessage.success,
       add_specifications,
@@ -141,14 +143,8 @@ const product_listing = async (req, res, next) => {
     // if (!isValid) {
     //   return next(error);
     // }
-    const all_products = await product_model.product_listing(
-      data,
-      filters
-    );
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      all_products,
-    });
+    const all_products = await product_model.product_listing(data, filters);
+    res.status(constants.responseCodes.success).json(all_products);
   } catch (err) {
     next(err);
   }
@@ -156,10 +152,9 @@ const product_listing = async (req, res, next) => {
 
 const specific_product_listing = async (req, res, next) => {
   try {
-    const specific_product =
-      await product_model.specific_product_listing(
-        req.params.product_id
-      );
+    const specific_product = await product_model.specific_product_listing(
+      req.params.product_id
+    );
     res.status(constants.responseCodes.success).json({
       message: constants.responseMessage.success,
       specific_product,

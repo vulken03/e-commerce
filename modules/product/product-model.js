@@ -7,19 +7,19 @@ const create_product_type = async (productData) => {
     const { product_type_name, product_category_list, product_brand_list } =
       productData;
 
-    const find_product_type = await _DB.product_type.findOne({
+    const find_product_type = await _DB.product_type.count({
       where: {
         product_type_name,
       },
     });
     if (find_product_type) {
+      const error_message =
+        "product_type is already created with give product_type_name";
       return {
         success: false,
         data: null,
-        error: new Error(
-          "product_type is already created with give product_type_name"
-        ),
-        message: "product_type is already created with give product_type_name",
+        error: new Error(error_message).stack,
+        message: error_message,
       };
     }
 
@@ -53,19 +53,21 @@ const create_product_type = async (productData) => {
           data: create_product_type,
         };
       } else {
+        const error_message = "error while creating category or brand";
         return {
           success: false,
           data: null,
-          error: new Error("error while creating category or brand"),
-          message: "error while creating category or brand", // not required when success is true
+          error: new Error(error_message).stack,
+          message: error_message,
         };
       }
     } else {
+      const error_message = "error while creating product_type";
       return {
         success: false,
         data: null,
-        error: new Error("error while creating product_type"),
-        message: "error while creating product_type", // not required when success is true
+        error: new Error(error_message).stack,
+        message: error_message,
       };
     }
   } catch (err) {
@@ -86,9 +88,10 @@ const create_category = async (
       where: {
         category_name: i,
       },
+      raw: true,
     });
     if (check_category) {
-      _DB.type_category.create(
+      await _DB.type_category.create(
         {
           product_type_id: create_product_type.product_type_id,
           category_id: check_category.category_id,
@@ -186,19 +189,21 @@ const delete_product_type = async (product_type_id) => {
         data: null,
       };
     } else {
+      const error_message = "error while deleting...";
       return {
         success: false,
         data: null,
-        error: new Error("error while deleting..."),
-        message: "error while deleting...", // not required when success is true
+        error: new Error(error_message).stack,
+        message: error_message, // not required when success is true
       };
     }
   } else {
+    const error_message = "attribute is found with given product_type";
     return {
       success: false,
       data: null,
-      error: new Error("attribute is found with given product_type"),
-      message: "attribute is found with given product_type", // not required when success is true
+      error: new Error(error_message).stack,
+      message: error_message, // not required when success is true
     };
   }
 };
@@ -293,11 +298,12 @@ const product_type_listing = async ({ category_name, brand_name }) => {
       data: find_product_types,
     };
   } else {
+    const error_message = "error while finding product_type";
     return {
       success: false,
       data: null,
-      error: new Error("error while finding product_type"),
-      message: "error while finding product_type", // not required when success is true
+      error: new Error(error_message).stack,
+      message: error_message,
     };
   }
 };
@@ -393,13 +399,13 @@ const specific_product_type = async (product_type_id) => {
       data: find_product_type,
     };
   } else {
+    const error_message =
+      "error while find product_type with given product_type_id";
     return {
       success: false,
       data: null,
-      error: new Error(
-        "error while find product_type with given product_type_id"
-      ),
-      message: "error while find product_type with given product_type_id",
+      error: new Error(error_message).stack,
+      message: error_message,
     };
   }
 };
@@ -438,29 +444,31 @@ const update_product_type = async (product_type_id, product_type_data) => {
             data: null,
           };
         } else {
+          const error_message = "error while updating category and brand";
           return {
             success: false,
             data: null,
-            error: new Error("error while updating category and brand"),
-            message: "error while updating category and brand",
+            error: new Error(error_message).stack,
+            message: error_message,
           };
         }
       } else {
+        const error_message = "error while updating product_type";
         return {
           success: false,
           data: null,
-          error: new Error("error while updating product_type"),
-          message: "error while updating product_type",
+          error: new Error(error_message).stack,
+          message: error_message,
         };
       }
     } else {
+      const error_message =
+        "product_type is not found with given product_type_id";
       return {
         success: false,
         data: null,
-        error: new Error(
-          "product_type is not found with given product_type_id"
-        ),
-        message: "product_type is not found with given product_type_id",
+        error: new Error(error_message).stack,
+        message: error_message,
       };
     }
   } catch (err) {
@@ -533,30 +541,33 @@ const update_category = async (
           data: null,
         };
       } else {
+        const error_message = "error while creating type_category";
         return {
           success: false,
           data: null,
-          error: new Error("error while creating type_category"),
-          message: "error while creating type_category",
+          error: new Error(error_message).stack,
+          message: error_message,
         };
       }
     } else {
+      const error_message = "error while updating category";
       return {
         success: false,
         data: null,
-        error: new Error("error while updating category"),
-        message: "error updating category",
+        error: new Error(error_message).stack,
+        message: error_message,
       };
     }
     // } else {
     //  throw new Error("error while deletion");
     //}
   } else {
+    const error_message = "error while finding with this product_type_id";
     return {
       success: false,
       data: null,
-      error: new Error("error while finding with this product_type_id"),
-      message: "error while finding with this product_type_id",
+      error: new Error(error_message).stack,
+      message: error_message,
     };
   }
 };
@@ -622,26 +633,34 @@ const update_brand = async (
           data: null,
         };
       } else {
+        const error_message = "error while creating type_brand";
         return {
           success: false,
           data: null,
-          error: new Error("error while creating type_brand"),
-          message: "error while creating type_brand",
+          error: new Error(error_message).stack,
+          message: error_message,
         };
       }
     } else {
+      const error_message = "error while updating brand";
       return {
         success: false,
         data: null,
-        error: new Error("error while updating brand"),
-        message: "error while updating brand",
+        error: new Error(error_message).stack,
+        message: error_message,
       };
     }
     //} else {
     //throw new Error("error while deletion");
     //}
   } else {
-    throw new Error("error while finding with this product_type_id");
+    const error_message = "error while updating brand";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
   }
 };
 // const test = async () => {
@@ -715,20 +734,47 @@ const create_product_data = async (specification_data) => {
             });
           if (add_product_specification.length !== 0) {
             await transaction.commit();
-            return true;
+            return {
+              success: true,
+              data: null,
+            };
           } else {
-            throw new Error("error while creating specifications");
+            const error_message = "error while creating product specifications";
+            return {
+              success: false,
+              data: null,
+              error: new Error(error_message).stack,
+              message: error_message,
+            };
           }
         } else {
-          throw new Error("no data available");
+          const error_message =
+            "this product_type is not available in product_type schema";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
         }
       } else {
-        throw new Error("error while adding product details");
+        const error_message = "error while adding product details";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
       }
     } else {
-      throw new Error(
-        "product_type or product_category pr product_brand is is not found with given data"
-      );
+      const error_message =
+        "product_type or product_category pr product_brand is is not found with given data";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
     }
   } catch (err) {
     await transaction.rollback();
@@ -737,8 +783,8 @@ const create_product_data = async (specification_data) => {
 };
 //improve
 const product_listing = async (
-  { product_type_id, brand_id, product_name, low_price, high_price, ram_value },
-  { sortby = {}, pagination = {} }
+  { product_type_id, brand_id, product_name, low_price, high_price },
+  { sortby = {}, pagination = {}, filterby = {} }
 ) => {
   let filter = {
     where: {},
@@ -805,7 +851,20 @@ const product_listing = async (
     },
   };
 
-  if (ram_value) {
+  if (Object.keys(filterby).length !== 0) {
+    const filterby_keys = [];
+    const filterby_values = [];
+    for (let i of Object.keys(filterby)) {
+      filterby_keys.push("'" + i + "'");
+    }
+    //console.log(Object.values(filterby));
+    let values = Object.values(filterby);
+    for(let j = 0; j< values.length; j++) {
+  
+      for(let k= 0; k< values[j].length; k++) {
+        filterby_values.push("'" + values[j][k] + "'");
+      }
+    }
     const result = await _DB.sequelize.query(
       `SELECT 
     p.product_name,
@@ -828,15 +887,18 @@ FROM
     product_attribute_value AS pav ON pav.product_id = p.product_id
         JOIN
     product_type_attribute AS pta ON pta.attribute_id = pav.attribute_id
-    and pta.attribute_name='ram'
-    and pav.value='${ram_value}'
+    and pta.attribute_name IN (${filterby_keys})
+    and pav.value IN (${filterby_values})
 GROUP BY p.product_id
 `,
       {
         type: _DB.Sequelize.QueryTypes["SELECT"],
       }
     );
-    return result;
+    return {
+      success: true,
+      data: result,
+    };
   } else {
     const all_products = await _DB.product.findAll({
       where: filter.where,
@@ -848,9 +910,18 @@ GROUP BY p.product_id
       group: "product.product_id",
     });
     if (all_products.length >= 0) {
-      return all_products;
+      return {
+        success: true,
+        data: all_products,
+      };
     } else {
-      throw new Error("error while getting all products");
+      const error_message = "error while getting all products";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
     }
   }
 };
@@ -871,9 +942,18 @@ const specific_product_listing = async (product_id) => {
     raw: true,
   });
   if (specific_product.length >= 0) {
-    return specific_product;
+    return {
+      success: true,
+      data: specific_product,
+    };
   } else {
-    throw new Error(`don't find product with this product_id`);
+    const error_message = `don't find product with this product_id`;
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
   }
 };
 
@@ -886,12 +966,27 @@ const delete_product = async (product_id) => {
   if (find_product) {
     const product_delete = await find_product.destroy();
     if (product_delete) {
-      return true;
+      return {
+        success: true,
+        data: null,
+      };
     } else {
-      throw new Error("error while deleting");
+      const error_message = "error while deleting";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
     }
   } else {
-    throw new Error("product is not found whit this product_id");
+    const error_message = "product is not found whit this product_id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
   }
 };
 
@@ -911,9 +1006,18 @@ const update_product = async (product_id, product_data) => {
         "quantity",
       ],
     });
-    return true;
+    return {
+      success: true,
+      data: null,
+    };
   } else {
-    throw new Error("attribute is not found with this product_id");
+    const error_message = "attribute is not found with this product_id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
   }
 };
 

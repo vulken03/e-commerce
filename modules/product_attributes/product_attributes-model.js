@@ -1,10 +1,3 @@
-const sequelize = require("sequelize");
-const { Op } = require("sequelize");
-// { sortby = {}, pagination = {}, ...filter }
-/* {
-  ram: ['1GB','2GB'],
-  screen_size: []
-} */
 const create_product_type_attribute = async ({
   attribute_name,
   product_type_name,
@@ -39,15 +32,36 @@ const create_product_type_attribute = async ({
         );
         if (create_attribute_values) {
           await transaction.commit();
-          return true;
+          return {
+            success: true,
+            data: create_attribute_values,
+          };
         } else {
-          throw new Error("error while creating attribute values");
+          const error_message = "error while creating attribute values";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
         }
       } else {
-        throw new Error("error while creating attribute");
+        const error_message = "error while creating attribute";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
       }
     } else {
-      throw new Error("product type is not found");
+      const error_message = "product type is not found";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
     }
   } catch (err) {
     await transaction.rollback();
@@ -95,15 +109,36 @@ const update_product_type_attribute = async (
         );
         if (create_attribute_values) {
           await transaction.commit();
-          return true;
+          return {
+            success: true,
+            data: null,
+          };
         } else {
-          throw new Error("error while creating attribute values");
+          const error_message = "error while creating attribute values";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
         }
       } else {
-        throw new Error("error while updating product_type attribute");
+        const error_message = "error while updating product_type attribute";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
       }
     } else {
-      throw new Error("attributes with this attribute_id is not found");
+      const error_message = "attributes with this attribute_id is not found";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
     }
   } catch (err) {
     await transaction.rollback();

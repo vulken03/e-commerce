@@ -8,13 +8,13 @@ const create_admin = async (admin_data) => {
   if (admin_creation) {
     return true;
   } else {
-    /* return {
+    const error_message = "error while creating admin";
+    return {
       success: false,
       data: null,
-      error: new Error("error while creating admin"),
-      message: 'error while creating admin' // not required when success is true
-    } */
-    throw new Error("error while creating admin");
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
   }
 };
 
@@ -34,7 +34,7 @@ const createSessionAdmin = async (admin_id) => {
   if (session) {
     return session;
   } else {
-    throw new Error("error while creating session");
+    return false;
   }
 };
 
@@ -57,7 +57,7 @@ const generateJwtToken = async (admin, uuid, isAdmin) => {
   if (token) {
     return token;
   } else {
-    throw new Error("error while generating token");
+    return false;
   }
 };
 
@@ -83,16 +83,40 @@ const admin_login = async ({ username, password }) => {
         if (jwt) {
           return jwt;
         } else {
-          throw new Error("error while generating session");
+          const error_message = "error while generating session";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
         }
       } else {
-        throw new Error("error while session creation");
+        const error_message = "error while session creation";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
       }
     } else {
-      throw new Error("Password is wrong");
+      const error_message = "Password is wrong";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
     }
   } else {
-    throw new Error("admin not found");
+    const error_message = "admin not found";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
   }
 };
 module.exports = {
