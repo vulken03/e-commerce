@@ -9,12 +9,14 @@ const create_product_type_attribute = async ({
       where: {
         product_type_name,
       },
+      attributes:["product_type_id","product_type_name"]
     });
     if (find_product_type) {
       const create_attribute = await _DB.product_type_attribute.create(
         {
           attribute_name,
           product_type_id: find_product_type.product_type_id,
+          fields:["product_type_id","attribute_name"]
         },
         { transaction }
       );
@@ -80,12 +82,14 @@ const update_product_type_attribute = async (
         where: {
           attribute_id,
         },
+        attributes:["attribute_id"]
       });
     if (find_product_type_attribute) {
       const update_product_type_attribute =
         await find_product_type_attribute.update(
           {
             attribute_name,
+            fields:["attribute_name"]
           },
           transaction
         );

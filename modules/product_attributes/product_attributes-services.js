@@ -17,10 +17,15 @@ const add_product_type_attributes = async (req, res, next) => {
 
     const add_attributes =
       await product_attributes_model.create_product_type_attribute(data);
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      add_attributes,
-    });
+    if (add_attributes.success == true) {
+      res.status(constants.responseCodes.success).json({
+        add_attributes,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        add_attributes,
+      });
+    }
   } catch (err) {
     next(err);
   }
@@ -43,10 +48,15 @@ const update_product_type_attributes = async (req, res, next) => {
         data,
         attribute_id
       );
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      update_attributes,
-    });
+    if (update_attributes.success == true) {
+      res.status(constants.responseCodes.success).json({
+        update_attributes,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        update_attributes,
+      });
+    }
   } catch (err) {
     next(err);
   }

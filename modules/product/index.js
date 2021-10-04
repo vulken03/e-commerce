@@ -30,7 +30,7 @@ module.exports = (app) => {
   );
 
   app.post(
-    "/add_specifications",
+    "/add_product",
     allowAdminOnly,
     product_service.add_product_specification
   );

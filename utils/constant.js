@@ -3,6 +3,7 @@ const constants = {
     responseCodes: {
       success: 200,
       error: 500,
+      badrequest:400
     },
     responseMessage: {
       success: "success",

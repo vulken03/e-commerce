@@ -4,7 +4,10 @@ const config = require("../../configuration/config");
 const { validatePassword } = require("../../utils/encrypt");
 
 const create_admin = async (admin_data) => {
-  const admin_creation = await _DB.admin.create(admin_data);
+  const admin_creation = await _DB.admin.create({
+    admin_data,
+    fields: ["username", "email", "phoneno", "password"],
+  });
   if (admin_creation) {
     return true;
   } else {
@@ -30,6 +33,13 @@ const createSessionAdmin = async (admin_id) => {
     time_to_leave: +moment().add(1, "days").unix(),
     is_loggedout: 0,
     is_admin: 1,
+    fields: [
+      "user_id",
+      "login_time",
+      "time_to_leave",
+      "is_loggedout",
+      "is_admin",
+    ],
   });
   if (session) {
     return session;
@@ -66,6 +76,7 @@ const admin_login = async ({ username, password }) => {
     where: {
       username,
     },
+    attributes: ["admin_id", "username", "password"],
     raw: true,
   });
 
