@@ -835,17 +835,41 @@ const specific_product_listing = async (product_id) => {
     where: {
       product_id,
     },
+    attributes: [
+      "product_name",
+      "model_name",
+      "product_description",
+      "quantity",
+      "price",
+
+      [
+        sequelize.literal(
+          `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
+                              product_type_attribute.attribute_name,
+                              'attribute_value',
+                              product_attribute_value.value))
+      FROM
+          product_attribute_value
+              LEFT JOIN
+          product_type_attribute ON product_attribute_value.attribute_id = product_type_attribute.attribute_id
+          where
+          product_attribute_value.product_id=product.product_id)
+          `
+        ),
+        "attribute_list",
+      ],
+    ],
     include: {
       model: _DB.product_attribute_value,
-      attributes: ["value"],
+      attributes: [],
       include: {
         model: _DB.product_type_attribute,
-        attributes: ["attribute_name"],
+        attributes: [],
       },
     },
     raw: true,
   });
-  if (specific_product.length >= 0) {
+  if (specific_product) {
     return {
       success: true,
       data: specific_product,
