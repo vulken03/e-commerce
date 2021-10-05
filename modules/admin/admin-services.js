@@ -13,10 +13,15 @@ const admin_registration = async (req, res, next) => {
     };
 
     const create_admin = await admin_model.create_admin(admin_data);
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      create_admin,
-    });
+    if (create_admin.success == true) {
+      res.status(constants.responseCodes.success).json({
+        create_admin,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        create_admin,
+      });
+    }
   } catch (err) {
     next(err);
     logger.error(err);
@@ -36,10 +41,16 @@ const admin_login = async (req, res, next) => {
       return next(error);
     }
     const login = await admin_model.admin_login(admin_data);
-    res.status(constants.responseCodes.success).json({
-      message: constants.responseMessage.success,
-      login,
-    });
+    if (login.success == true) {
+      res.status(constants.responseCodes.success).json({
+        message: constants.responseMessage.success,
+        login,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        login,
+      });
+    }
   } catch (err) {
     next(err);
     logger.error(err);

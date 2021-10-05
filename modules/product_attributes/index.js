@@ -7,10 +7,6 @@ module.exports = (app) => {
     attribute_service.add_product_type_attributes
   );
  
-  // product/add
-  // product/list
-  // product/update
-  // product/view
     app.put(
     "/update_product_type_attribute/:attribute_id",
     allowAdminOnly,

@@ -9,7 +9,10 @@ const create_admin = async (admin_data) => {
     fields: ["username", "email", "phoneno", "password"],
   });
   if (admin_creation) {
-    return true;
+    return {
+      success: true,
+      data: null,
+    };
   } else {
     const error_message = "error while creating admin";
     return {
@@ -92,7 +95,10 @@ const admin_login = async ({ username, password }) => {
         const { uuid, is_admin } = session;
         const jwt = await generateJwtToken(admin, uuid, is_admin);
         if (jwt) {
-          return jwt;
+          return {
+            success: true,
+            data: jwt,
+          };
         } else {
           const error_message = "error while generating session";
           return {
