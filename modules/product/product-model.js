@@ -76,7 +76,7 @@ const create_product_type = async (productData) => {
     throw err;
   }
 };
-// { product_type_id, product_category_list, sql_tran }
+// TODO: { product_type_id, product_category_list, sql_tran } - This is how you need to define the attributes/params of function. follow the same at other places..
 const create_category = async (
   create_product_type,
   product_category_list,
@@ -97,7 +97,7 @@ const create_category = async (
         {
           product_type_id: create_product_type.product_type_id,
           category_id: check_category.category_id,
-          fields: ["product_type_id", "category_id"],
+          fields: ["product_type_id", "category_id"], // TODO: this is incorrect..fields prop will be located with the transaction prop..follow the same at other places..
         },
 
         { transaction }
@@ -154,6 +154,7 @@ const create_brand = async (
       });
     }
   }
+  // TODO: usage of sequelize's fields prop is still missing at many places..
   const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
     transaction,
   });
@@ -222,6 +223,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
   const filter = {};
 
   if (category_name && !brand_name) {
+    // TODO: why have you kept () around js statements?? there is no need of wrapping the line with ()
     (filter.attributes = ["product_type_name"]),
       (filter.include = {
         model: _DB.product_category,
@@ -308,6 +310,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
       data: find_product_types,
     };
   } else {
+    // TODO: no need to throw error when the list is empty..the data in this case should be []..do this everywhere wherever you are sending error while listing something..
     const error_message = "error while finding product_type";
     return {
       success: false,

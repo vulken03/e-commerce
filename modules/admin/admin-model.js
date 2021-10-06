@@ -30,6 +30,7 @@ const create_admin = async (admin_data) => {
 // const private_method = async () => {}
 
 const createSessionAdmin = async (admin_id) => {
+  // TODO: Try Catch is required in functions that are not public or are not kept/exported in module.exports ... follow the same at other places..
   const session = await _DB.session.create({
     user_id: admin_id,
     login_time: +moment().unix(),

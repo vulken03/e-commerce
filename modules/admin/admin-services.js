@@ -5,6 +5,7 @@ const { constants } = require("../../utils/constant");
 const { decryptRequestData } = require("../../utils/encrypt");
 const admin_registration = async (req, res, next) => {
   try {
+    // TODO: Take below admin data from request body..
     const admin_data = {
       username: "Viraj@2000",
       email: "vdparmar417@gmail.com",
@@ -15,7 +16,7 @@ const admin_registration = async (req, res, next) => {
     const create_admin = await admin_model.create_admin(admin_data);
     if (create_admin.success == true) {
       res.status(constants.responseCodes.success).json({
-        create_admin,
+        create_admin, // TODO: this is still not as per our discussion in our call..
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
