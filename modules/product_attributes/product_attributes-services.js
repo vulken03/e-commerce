@@ -19,11 +19,15 @@ const add_product_type_attributes = async (req, res, next) => {
       await product_attributes_model.create_product_type_attribute(data);
     if (add_attributes.success == true) {
       res.status(constants.responseCodes.success).json({
-        add_attributes,
+        success: add_attributes.success,
+        data: add_attributes.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        add_attributes,
+        success: add_attributes.success,
+        data: add_attributes.data,
+        error: add_attributes.error,
+        message: add_attributes.message,
       });
     }
   } catch (err) {
@@ -50,11 +54,15 @@ const update_product_type_attributes = async (req, res, next) => {
       );
     if (update_attributes.success == true) {
       res.status(constants.responseCodes.success).json({
-        update_attributes,
+        success: update_attributes.success,
+        data: update_attributes.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        update_attributes,
+        success: update_attributes.success,
+        data: update_attributes.data,
+        error: update_attributes.error,
+        message: update_attributes.message,
       });
     }
   } catch (err) {

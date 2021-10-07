@@ -6,21 +6,20 @@ const { decryptRequestData } = require("../../utils/encrypt");
 const admin_registration = async (req, res, next) => {
   try {
     // TODO: Take below admin data from request body..
-    const admin_data = {
-      username: "Viraj@2000",
-      email: "vdparmar417@gmail.com",
-      phoneno: "7228854182",
-      password: "1234",
-    };
+    const admin_data = req.body;
 
     const create_admin = await admin_model.create_admin(admin_data);
     if (create_admin.success == true) {
       res.status(constants.responseCodes.success).json({
-        create_admin, // TODO: this is still not as per our discussion in our call..
+        success: create_admin.success,
+        data: create_admin.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        create_admin,
+        success: create_admin.success,
+        data: create_admin.data,
+        error: create_admin.error,
+        message: create_admin.message,
       });
     }
   } catch (err) {
@@ -44,12 +43,15 @@ const admin_login = async (req, res, next) => {
     const login = await admin_model.admin_login(admin_data);
     if (login.success == true) {
       res.status(constants.responseCodes.success).json({
-        message: constants.responseMessage.success,
-        login,
+        success: login.success,
+        data: login.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        login,
+        success: login.success,
+        data: login.data,
+        error: login.error,
+        message: login.message,
       });
     }
   } catch (err) {

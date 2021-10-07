@@ -6,71 +6,83 @@ const config = require("../configuration/config");
 const { logger } = require("../utils/logger");
 
 let verifyJWT = async (req) => {
-  let userData = null;
-  if (req.url === "/resetPassword") {
-    userData = await verifyPasswordResetJwt(req);
-  } else {
-    let token = req.headers["authorization"];
-
-    userData = jwt.verify(token, config.get("jwt.key"), {
-      algorithms: ["HS384"],
-    });
-    if (userData) {
-      return userData;
+  try {
+    let userData = null;
+    if (req.url === "/resetPassword") {
+      userData = await verifyPasswordResetJwt(req);
     } else {
-      const error = new Error("userData not found");
-      throw error;
+      let token = req.headers["authorization"];
+
+      userData = jwt.verify(token, config.get("jwt.key"), {
+        algorithms: ["HS384"],
+      });
+      if (userData) {
+        return userData;
+      } else {
+        const error = new Error("userData not found");
+        throw error;
+      }
     }
+  } catch (err) {
+    throw err;
   }
 };
 
 let isValidSession = async (uuid) => {
-  let isValid = false;
-  let userSession = await _DB.session.findOne({
-    where: {
-      uuid,
-    },
-  });
+  try {
+    let isValid = false;
+    let userSession = await _DB.session.findOne({
+      where: {
+        uuid,
+      },
+    });
 
-  if (userSession) {
-    const timeToLeave = moment.unix(userSession.time_to_leave);
-    const isExpired = moment().isAfter(timeToLeave);
+    if (userSession) {
+      const timeToLeave = moment.unix(userSession.time_to_leave);
+      const isExpired = moment().isAfter(timeToLeave);
 
-    if (!isExpired && !userSession.is_loggedout) {
-      isValid = true;
+      if (!isExpired && !userSession.is_loggedout) {
+        isValid = true;
+      }
+
+      if (isExpired) {
+        await _DB.session.update(
+          { is_loggedout: 1 },
+          {
+            fields: ["is_loggedout"],
+          }
+        );
+      }
     }
 
-    if (isExpired) {
-      await _DB.session.update(
-        { is_loggedout: 1 },
-        {
-          fields: ["is_loggedout"],
-        }
-      );
-    }
+    return isValid;
+  } catch (err) {
+    throw err;
   }
-
-  return isValid;
 };
 
 let isValidUser = async ({ isAdmin, adminId }) => {
-  let isUserValid = false;
-  let fetchedUser = null;
-  if (isAdmin == 1) {
-    fetchedUser = await _DB.admin.findOne({
-      where: {
-        admin_id: adminId,
-      },
-      raw: true,
-    });
-  } 
-  if (fetchedUser) {
-    isUserValid = true;
+  try {
+    let isUserValid = false;
+    let fetchedUser = null;
+    if (isAdmin == 1) {
+      fetchedUser = await _DB.admin.findOne({
+        where: {
+          admin_id: adminId,
+        },
+        raw: true,
+      });
+    }
+    if (fetchedUser) {
+      isUserValid = true;
+    }
+    return {
+      isUserValid,
+      user: fetchedUser,
+    };
+  } catch (err) {
+    throw err;
   }
-  return {
-    isUserValid,
-    user: fetchedUser,
-  };
 };
 
 let authenticateRequest = async (req, res, next) => {

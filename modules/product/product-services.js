@@ -16,11 +16,15 @@ const create_product_type = async (req, res, next) => {
     const product_creation = await product_model.create_product_type(data);
     if (product_creation.success === true) {
       res.status(constants.responseCodes.success).json({
-        product_creation,
+        success: product_creation.success,
+        data: product_creation.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        product_creation,
+        success: product_creation.success,
+        data: product_creation.data,
+        error: product_creation.error,
+        message: product_creation.message,
       });
     }
   } catch (err) {
@@ -35,11 +39,15 @@ const delete_product_type = async (req, res, next) => {
     );
     if (product_type_deletion.success == true) {
       res.status(constants.responseCodes.success).json({
-        product_type_deletion,
+        success: product_type_deletion.success,
+        data: product_type_deletion.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        product_type_deletion,
+        success: product_type_deletion.success,
+        data: product_type_deletion.data,
+        error: product_type_deletion.error,
+        message: product_type_deletion.message,
       });
     }
   } catch (err) {
@@ -73,11 +81,8 @@ const product_type_listing = async (req, res, next) => {
     });
     if (product_type.success == true) {
       res.status(constants.responseCodes.success).json({
-        product_type,
-      });
-    } else {
-      res.status(constants.responseCodes.badrequest).json({
-        product_type,
+        success: product_type.success,
+        data: product_type.data,
       });
     }
   } catch (err) {
@@ -92,11 +97,8 @@ const find_single_product_type = async (req, res, next) => {
     );
     if (product_type.success == true) {
       res.status(constants.responseCodes.success).json({
-        product_type,
-      });
-    } else {
-      res.status(constants.responseCodes.badrequest).json({
-        product_type,
+        success: product_type.success,
+        data: product_type.data,
       });
     }
   } catch (err) {
@@ -121,11 +123,15 @@ const update_product_type = async (req, res, next) => {
     );
     if (update.success == true) {
       res.status(constants.responseCodes.success).json({
-        update,
+        success: update.success,
+        data: update.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        update,
+        success: update.success,
+        data: update.data,
+        error: update.error,
+        message: update.message,
       });
     }
   } catch (err) {
@@ -147,11 +153,15 @@ const add_product_specification = async (req, res, next) => {
     const add_specifications = await product_model.create_product_data(data);
     if (add_specifications.success == true) {
       res.status(constants.responseCodes.success).json({
-        add_specifications,
+        success: add_specifications.success,
+        data: add_specifications.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        add_specifications,
+        success: add_specifications.success,
+        data: add_specifications.data,
+        error: add_specifications.error,
+        message: add_specifications.message,
       });
     }
   } catch (err) {
@@ -173,11 +183,9 @@ const product_listing = async (req, res, next) => {
     // }
     const all_products = await product_model.product_listing(data, filters);
     if (all_products.success == true) {
-      res.status(constants.responseCodes.success).json(all_products);
-    } else {
-      res.status(constants.responseCodes.badrequest).json({
-        all_products,
-      });
+      res
+        .status(constants.responseCodes.success)
+        .json({ success: all_products.success, data: all_products.data });
     }
   } catch (err) {
     next(err);
@@ -191,11 +199,8 @@ const specific_product_listing = async (req, res, next) => {
     );
     if (specific_product.success == true) {
       res.status(constants.responseCodes.success).json({
-        specific_product,
-      });
-    } else {
-      res.status(constants.responseCodes.badrequest).json({
-        specific_product,
+        success: specific_product.success,
+        data: specific_product.data,
       });
     }
   } catch (err) {
@@ -210,11 +215,15 @@ const delete_product = async (req, res, next) => {
     );
     if (product_deletion.success == true) {
       res.status(constants.responseCodes.success).json({
-        product_deletion,
+        success: product_deletion.success,
+        data: product_deletion.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        product_deletion,
+        success: product_deletion.success,
+        data: product_deletion.data,
+        error: product_deletion.error,
+        message: product_deletion.message,
       });
     }
   } catch (err) {
@@ -240,11 +249,15 @@ const update_product = async (req, res, next) => {
     );
     if (product_updation.success == true) {
       res.status(constants.responseCodes.success).json({
-        product_updation,
+        success: product_updation.success,
+        data: product_updation.data,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
-        product_updation,
+        success: product_updation.success,
+        data: product_updation.data,
+        error: product_updation.error,
+        message: product_updation.message,
       });
     }
   } catch (err) {

@@ -18,7 +18,7 @@ const create_product_type = async (productData) => {
       return {
         success: false,
         data: null,
-        err: new Error(error_message).stack,
+        error: new Error(error_message).stack,
         message: error_message,
       };
     }
@@ -26,25 +26,20 @@ const create_product_type = async (productData) => {
     const create_product_type = await _DB.product_type.create(
       {
         product_type_name,
-        fields: [product_type_name],
       },
-      { transaction }
+      { transaction, fields: ["product_type_name"] }
     );
     if (create_product_type) {
-      const category = await create_category(
+      const category = await create_category({
         create_product_type,
         product_category_list,
-        {
-          transaction,
-        }
-      );
-      const brand = await create_brand(
+        transaction,
+      });
+      const brand = await create_brand({
         create_product_type,
         product_brand_list,
-        {
-          transaction,
-        }
-      );
+        transaction,
+      });
       const [m1, m2] = await Promise.all([category, brand]);
       if (m1 && m2) {
         //console.log(typeof m1);
@@ -58,7 +53,7 @@ const create_product_type = async (productData) => {
         return {
           success: false,
           data: null,
-          err: new Error(error_message).stack,
+          error: new Error(error_message).stack,
           message: error_message,
         };
       }
@@ -67,7 +62,7 @@ const create_product_type = async (productData) => {
       return {
         success: false,
         data: null,
-        err: new Error(error_message).stack,
+        error: new Error(error_message).stack,
         message: error_message,
       };
     }
@@ -77,98 +72,116 @@ const create_product_type = async (productData) => {
   }
 };
 // TODO: { product_type_id, product_category_list, sql_tran } - This is how you need to define the attributes/params of function. follow the same at other places..
-const create_category = async (
+const create_category = async ({
   create_product_type,
   product_category_list,
-  { transaction }
-) => {
-  let category_list = [];
+  transaction,
+}) => {
+  try {
+    let category_list = [];
 
-  for (let i of product_category_list) {
-    const check_category = await _DB.product_category.findOne({
-      where: {
-        category_name: i,
-      },
-      attributes: ["category_id", "category_name"],
-      raw: true,
-    });
-    if (check_category) {
-      await _DB.type_category.create(
-        {
-          product_type_id: create_product_type.product_type_id,
-          category_id: check_category.category_id,
-          fields: ["product_type_id", "category_id"], // TODO: this is incorrect..fields prop will be located with the transaction prop..follow the same at other places..
+    for (let i of product_category_list) {
+      const check_category = await _DB.product_category.findOne({
+        where: {
+          category_name: i,
         },
+        attributes: ["category_id", "category_name"],
+        raw: true,
+      });
+      if (check_category) {
+        await _DB.type_category.create(
+          {
+            product_type_id: create_product_type.product_type_id,
+            category_id: check_category.category_id,
+            // TODO: this is incorrect..fields prop will be located with the transaction prop..follow the same at other places..
+          },
 
-        { transaction }
-      );
-    } else {
-      category_list.push({
-        category_name: i,
+          { transaction, fields: ["product_type_id", "category_id"] }
+        );
+      } else {
+        category_list.push({
+          category_name: i,
+        });
+      }
+    }
+    const create_category = await _DB.product_category.bulkCreate(
+      category_list,
+      {
+        transaction,
+        fields: ["category_name"],
+      }
+    );
+    let arr1 = [];
+    for (let k of create_category) {
+      arr1.push({
+        product_type_id: create_product_type.product_type_id,
+        category_id: k.category_id,
       });
     }
-  }
-  const create_category = await _DB.product_category.bulkCreate(category_list, {
-    transaction,
-  });
-  let arr1 = [];
-  for (let k of create_category) {
-    arr1.push({
-      product_type_id: create_product_type.product_type_id,
-      category_id: k.category_id,
+    await _DB.type_category.bulkCreate(arr1, {
+      transaction,
+      fields: ["product_type_id", "category_id"],
     });
-  }
-  await _DB.type_category.bulkCreate(arr1, { transaction });
-  if (create_category) {
-    return true;
-  } else {
-    return false;
+    if (create_category) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (err) {
+    throw err;
   }
 };
-const create_brand = async (
+const create_brand = async ({
   create_product_type,
   product_brand_list,
-  { transaction }
-) => {
-  let brand_list = [];
-  let arr2 = [];
-  for (let j of product_brand_list) {
-    const check_brand = await _DB.product_brand.findOne({
-      where: {
-        brand_name: j,
-      },
-      attributes: ["brand_id", "brand_name"],
-    });
-    if (check_brand) {
-      await _DB.type_brand.create(
-        {
-          product_type_id: create_product_type.product_type_id,
-          brand_id: check_brand.brand_id,
-          fields: ["product_type_id", "brand_id"],
+  transaction,
+}) => {
+  try {
+    let brand_list = [];
+    let arr2 = [];
+    for (let j of product_brand_list) {
+      const check_brand = await _DB.product_brand.findOne({
+        where: {
+          brand_name: j,
         },
-        { transaction }
-      );
-    } else {
-      brand_list.push({
-        brand_name: j,
+        attributes: ["brand_id", "brand_name"],
+      });
+      if (check_brand) {
+        await _DB.type_brand.create(
+          {
+            product_type_id: create_product_type.product_type_id,
+            brand_id: check_brand.brand_id,
+          },
+          { transaction, fields: ["product_type_id", "brand_id"] }
+        );
+      } else {
+        brand_list.push({
+          brand_name: j,
+        });
+      }
+    }
+    // TODO: usage of sequelize's fields prop is still missing at many places..
+    const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
+      transaction,
+      fields: ["brand_name"],
+    });
+    for (let l of create_brand) {
+      arr2.push({
+        product_type_id: create_product_type.product_type_id,
+        brand_id: l.brand_id,
       });
     }
-  }
-  // TODO: usage of sequelize's fields prop is still missing at many places..
-  const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
-    transaction,
-  });
-  for (let l of create_brand) {
-    arr2.push({
-      product_type_id: create_product_type.product_type_id,
-      brand_id: l.brand_id,
+    await _DB.type_brand.bulkCreate(arr2, {
+      transaction,
+      fields: ["product_type_id", "brand_id"],
     });
-  }
-  await _DB.type_brand.bulkCreate(arr2, { transaction });
-  if (create_brand) {
-    return true;
-  } else {
-    return false;
+    if (create_brand) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -205,7 +218,7 @@ const delete_product_type = async (product_type_id) => {
         success: false,
         data: null,
         error: new Error(error_message).stack,
-        message: error_message, // not required when success is true
+        message: error_message,
       };
     }
   } else {
@@ -214,7 +227,7 @@ const delete_product_type = async (product_type_id) => {
       success: false,
       data: null,
       error: new Error(error_message).stack,
-      message: error_message, // not required when success is true
+      message: error_message,
     };
   }
 };
@@ -309,15 +322,6 @@ const product_type_listing = async ({ category_name, brand_name }) => {
       success: true,
       data: find_product_types,
     };
-  } else {
-    // TODO: no need to throw error when the list is empty..the data in this case should be []..do this everywhere wherever you are sending error while listing something..
-    const error_message = "error while finding product_type";
-    return {
-      success: false,
-      data: null,
-      error: new Error(error_message).stack,
-      message: error_message,
-    };
   }
 };
 
@@ -411,15 +415,6 @@ const specific_product_type = async (product_type_id) => {
       success: true,
       data: find_product_type,
     };
-  } else {
-    const error_message =
-      "error while find product_type with given product_type_id";
-    return {
-      success: false,
-      data: null,
-      error: new Error(error_message).stack,
-      message: error_message,
-    };
   }
 };
 
@@ -440,16 +435,16 @@ const update_product_type = async (product_type_id, product_type_data) => {
         transaction
       );
       if (product_type_update) {
-        const category = await update_category(
+        const category = await update_category({
           find_product_type,
           product_category_list,
-          { transaction }
-        );
-        const brand = await update_brand(
+          transaction,
+        });
+        const brand = await update_brand({
           find_product_type,
           product_brand_list,
-          { transaction }
-        );
+          transaction,
+        });
         const [m1, m2] = await Promise.all([category, brand]);
         if (m1 && m2) {
           await transaction.commit();
@@ -491,74 +486,84 @@ const update_product_type = async (product_type_id, product_type_data) => {
   }
 };
 
-const update_category = async (
+const update_category = async ({
   find_product_type,
   product_category_list,
-  { transcation }
-) => {
-  const find_type_category = await _DB.type_category.findAll({
-    where: {
-      product_type_id: find_product_type.product_type_id,
-    },
-    attributes: ["product_type_id", "category_id"],
-  });
-  if (find_type_category) {
-    await _DB.type_category.destroy({
+  transcation,
+}) => {
+  try {
+    const find_type_category = await _DB.type_category.findAll({
       where: {
         product_type_id: find_product_type.product_type_id,
       },
-      transcation,
+      attributes: ["product_type_id", "category_id"],
     });
-    //if (type_category_delete) {
-    const category_list = [];
-    for (let a of product_category_list) {
-      const find_category = await _DB.product_category.findOne({
+    if (find_type_category) {
+      await _DB.type_category.destroy({
         where: {
-          category_name: a,
-        },
-        attributes: ["category_id", "category_name"],
-      });
-
-      if (!find_category) {
-        category_list.push({
-          category_name: a,
-        });
-      } else {
-        await _DB.type_category.create(
-          {
-            category_id: find_category.category_id,
-            product_type_id: find_product_type.product_type_id,
-            fields: ["category_id", "product_type_id"],
-          },
-          { transcation }
-        );
-      }
-    }
-    const create_category = await _DB.product_category.bulkCreate(
-      category_list,
-      {
-        transcation,
-      }
-    );
-    if (create_category) {
-      const type_category_list = [];
-      for (let b of create_category) {
-        type_category_list.push({
           product_type_id: find_product_type.product_type_id,
-          category_id: b.category_id,
+        },
+        transcation,
+      });
+      //if (type_category_delete) {
+      const category_list = [];
+      for (let a of product_category_list) {
+        const find_category = await _DB.product_category.findOne({
+          where: {
+            category_name: a,
+          },
+          attributes: ["category_id", "category_name"],
         });
+
+        if (!find_category) {
+          category_list.push({
+            category_name: a,
+          });
+        } else {
+          await _DB.type_category.create(
+            {
+              category_id: find_category.category_id,
+              product_type_id: find_product_type.product_type_id,
+            },
+            { transcation, fields: ["category_id", "product_type_id"] }
+          );
+        }
       }
-      const create_type_category = await _DB.type_category.bulkCreate(
-        type_category_list,
-        { transcation }
+      const create_category = await _DB.product_category.bulkCreate(
+        category_list,
+        {
+          transcation,
+          fields: ["category_name"],
+        }
       );
-      if (create_type_category) {
-        return {
-          success: true,
-          data: null,
-        };
+      if (create_category) {
+        const type_category_list = [];
+        for (let b of create_category) {
+          type_category_list.push({
+            product_type_id: find_product_type.product_type_id,
+            category_id: b.category_id,
+          });
+        }
+        const create_type_category = await _DB.type_category.bulkCreate(
+          type_category_list,
+          { transcation, fields: ["product_type_id", "category_id"] }
+        );
+        if (create_type_category) {
+          return {
+            success: true,
+            data: null,
+          };
+        } else {
+          const error_message = "error while creating type_category";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
+        }
       } else {
-        const error_message = "error while creating type_category";
+        const error_message = "error while updating category";
         return {
           success: false,
           data: null,
@@ -566,8 +571,11 @@ const update_category = async (
           message: error_message,
         };
       }
+      // } else {
+      //  throw new Error("error while deletion");
+      //}
     } else {
-      const error_message = "error while updating category";
+      const error_message = "error while finding with this product_type_id";
       return {
         success: false,
         data: null,
@@ -575,85 +583,86 @@ const update_category = async (
         message: error_message,
       };
     }
-    // } else {
-    //  throw new Error("error while deletion");
-    //}
-  } else {
-    const error_message = "error while finding with this product_type_id";
-    return {
-      success: false,
-      data: null,
-      error: new Error(error_message).stack,
-      message: error_message,
-    };
+  } catch (err) {
+    throw err;
   }
 };
 
-const update_brand = async (
+const update_brand = async ({
   find_product_type,
   product_brand_list,
-  { transcation }
-) => {
-  const find_type_brand = await _DB.type_brand.findAll({
-    where: {
-      product_type_id: find_product_type.product_type_id,
-    },
-    attributes: ["product_type_id"],
-  });
-  if (find_type_brand.length) {
-    await _DB.type_brand.destroy({
+  transcation,
+}) => {
+  try {
+    const find_type_brand = await _DB.type_brand.findAll({
       where: {
         product_type_id: find_product_type.product_type_id,
       },
-      transcation,
+      attributes: ["product_type_id"],
     });
-    //if (type_brand_delete) {
-    const brand_list = [];
-    for (let a of product_brand_list) {
-      const find_brand = await _DB.product_brand.findOne({
+    if (find_type_brand.length) {
+      await _DB.type_brand.destroy({
         where: {
-          brand_name: a,
-        },
-        attributes: ["brand_id", "brand_name"],
-      });
-
-      if (!find_brand) {
-        brand_list.push({
-          brand_name: a,
-        });
-      } else {
-        await _DB.type_brand.create(
-          {
-            brand_id: find_brand.brand_id,
-            product_type_id: find_product_type.product_type_id,
-            fields: ["brand_id", "product_type_id"],
-          },
-          { transcation }
-        );
-      }
-    }
-    const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
-      transcation,
-    });
-    if (create_brand) {
-      const type_brand_list = [];
-      for (let b of create_brand) {
-        type_brand_list.push({
           product_type_id: find_product_type.product_type_id,
-          brand_id: b.brand_id,
+        },
+        transcation,
+      });
+      //if (type_brand_delete) {
+      const brand_list = [];
+      for (let a of product_brand_list) {
+        const find_brand = await _DB.product_brand.findOne({
+          where: {
+            brand_name: a,
+          },
+          attributes: ["brand_id", "brand_name"],
         });
+
+        if (!find_brand) {
+          brand_list.push({
+            brand_name: a,
+          });
+        } else {
+          await _DB.type_brand.create(
+            {
+              brand_id: find_brand.brand_id,
+              product_type_id: find_product_type.product_type_id,
+            },
+            { transcation, fields: ["brand_id", "product_type_id"] }
+          );
+        }
       }
-      const create_type_brand = await _DB.type_brand.bulkCreate(
-        type_brand_list,
-        { transcation }
-      );
-      if (create_type_brand) {
-        return {
-          success: true,
-          data: null,
-        };
+      const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
+        transcation,
+        fields: ["brand_name"],
+      });
+      if (create_brand) {
+        const type_brand_list = [];
+        for (let b of create_brand) {
+          type_brand_list.push({
+            product_type_id: find_product_type.product_type_id,
+            brand_id: b.brand_id,
+          });
+        }
+        const create_type_brand = await _DB.type_brand.bulkCreate(
+          type_brand_list,
+          { transcation, fields: ["product_type_id", "brand_id"] }
+        );
+        if (create_type_brand) {
+          return {
+            success: true,
+            data: null,
+          };
+        } else {
+          const error_message = "error while creating type_brand";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
+        }
       } else {
-        const error_message = "error while creating type_brand";
+        const error_message = "error while updating brand";
         return {
           success: false,
           data: null,
@@ -661,6 +670,9 @@ const update_brand = async (
           message: error_message,
         };
       }
+      //} else {
+      //throw new Error("error while deletion");
+      //}
     } else {
       const error_message = "error while updating brand";
       return {
@@ -670,17 +682,8 @@ const update_brand = async (
         message: error_message,
       };
     }
-    //} else {
-    //throw new Error("error while deletion");
-    //}
-  } else {
-    const error_message = "error while updating brand";
-    return {
-      success: false,
-      data: null,
-      error: new Error(error_message).stack,
-      message: error_message,
-    };
+  } catch (err) {
+    throw err;
   }
 };
 // const test = async () => {
@@ -696,7 +699,6 @@ const update_brand = async (
 
 // test()
 
-//improve
 const product_listing = async (
   { product_type_id, brand_id, product_name, low_price, high_price },
   { sortby = {}, pagination = {}, filterby = {} }
@@ -821,14 +823,6 @@ GROUP BY p.product_id
         success: true,
         data: all_products,
       };
-    } else {
-      const error_message = "error while getting all products";
-      return {
-        success: false,
-        data: null,
-        error: new Error(error_message).stack,
-        message: error_message,
-      };
     }
   }
 };
@@ -872,20 +866,10 @@ const specific_product_listing = async (product_id) => {
     },
     raw: true,
   });
-  if (specific_product) {
-    return {
-      success: true,
-      data: specific_product,
-    };
-  } else {
-    const error_message = `don't find product with this product_id`;
-    return {
-      success: false,
-      data: null,
-      error: new Error(error_message).stack,
-      message: error_message,
-    };
-  }
+  return {
+    success: true,
+    data: specific_product,
+  };
 };
 
 const delete_product = async (product_id) => {
@@ -959,6 +943,9 @@ const create_product_data = async (specification_data) => {
           price,
           product_type_id: find_product_type.product_type_id,
           brand_id: find_product_brand.brand_id,
+        },
+        {
+          transaction,
           fields: [
             "product_name",
             "model_name",
@@ -968,8 +955,7 @@ const create_product_data = async (specification_data) => {
             "product_type_id",
             "brand_id",
           ],
-        },
-        { transaction }
+        }
       );
       if (add_product_details) {
         const findData = await _DB.product_type_attribute.findAll({
@@ -992,6 +978,7 @@ const create_product_data = async (specification_data) => {
           const add_product_specification =
             await _DB.product_attribute_value.bulkCreate(specification_list, {
               transaction,
+              fields: ["product_id", "attribute_id", "value"],
             });
           if (add_product_specification.length !== 0) {
             await transaction.commit();
@@ -1100,6 +1087,7 @@ const update_product = async (product_id, product_data) => {
           const add_product_specification =
             await _DB.product_attribute_value.bulkCreate(specification_list, {
               transaction,
+              fields: ["product_id", "attribute_id", "value"],
             });
           if (add_product_specification.length !== 0) {
             await transaction.commit();
