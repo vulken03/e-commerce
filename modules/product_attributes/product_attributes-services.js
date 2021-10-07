@@ -32,6 +32,7 @@ const add_product_type_attributes = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -67,6 +68,7 @@ const update_product_type_attributes = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 module.exports = {

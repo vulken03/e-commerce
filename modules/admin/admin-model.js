@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
+const { loggers } = require("winston");
 const config = require("../../configuration/config");
 const { validatePassword } = require("../../utils/encrypt");
 
@@ -46,7 +47,8 @@ const createSessionAdmin = async (admin_id) => {
       return false;
     }
   } catch (err) {
-    throw err;
+    logger.error(err);
+    return false;
   }
 };
 
@@ -73,6 +75,7 @@ const generateJwtToken = async (admin, uuid, isAdmin) => {
       return false;
     }
   } catch (err) {
+    logger.error(err);
     throw err;
   }
 };
