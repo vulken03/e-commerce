@@ -71,7 +71,7 @@ const create_product_type = async (productData) => {
     throw err;
   }
 };
-// TODO: { product_type_id, product_category_list, sql_tran } - This is how you need to define the attributes/params of function. follow the same at other places..
+// C-TODO { product_type_id, product_category_list, sql_tran } - This is how you need to define the attributes/params of function. follow the same at other places..
 const create_category = async ({
   create_product_type,
   product_category_list,
@@ -93,7 +93,7 @@ const create_category = async ({
           {
             product_type_id: create_product_type.product_type_id,
             category_id: check_category.category_id,
-            // TODO: this is incorrect..fields prop will be located with the transaction prop..follow the same at other places..
+            // C-TODO: this is incorrect..fields prop will be located with the transaction prop..follow the same at other places..
           },
 
           { transaction, fields: ["product_type_id", "category_id"] }
@@ -160,7 +160,7 @@ const create_brand = async ({
         });
       }
     }
-    // TODO: usage of sequelize's fields prop is still missing at many places..
+    // C-TODO: usage of sequelize's fields prop is still missing at many places..
     const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
       transaction,
       fields: ["brand_name"],
@@ -446,6 +446,7 @@ const update_product_type = async (product_type_id, product_type_data) => {
           transaction,
         });
         const [m1, m2] = await Promise.all([category, brand]);
+        // TODO: return date contains success, message, data/error properties..but you are not using those prop's values to control the flow i.e. if success = false then you need to rollback and return the same data to service method. Do this wherever there's same mistake.
         if (m1 && m2) {
           await transaction.commit();
           return {
@@ -536,6 +537,7 @@ const update_category = async ({
           fields: ["category_name"],
         }
       );
+      // TODO: create_category is an array so you need to check the length of the array..fix the same problem at other places..
       if (create_category) {
         const type_category_list = [];
         for (let b of create_category) {
@@ -683,6 +685,7 @@ const update_brand = async ({
       };
     }
   } catch (err) {
+    // C-TODO: update_brand is a private method that means, its not exported through module.exports or called by service method, so your return data should be similar to what you are using in try block i.e. object with status, error & message prop. and using logger, log the error.
     throw err;
   }
 };
@@ -714,6 +717,7 @@ const product_listing = async (
   }
 
   if (product_name) {
+    // TODO: make sure product name search is case insensitive and use like operator here
     filter.where.product_name = product_name;
   }
 
@@ -818,6 +822,7 @@ GROUP BY p.product_id
       include: filter.include,
       group: "product.product_id",
     });
+    // TODO: if block is not needed, if there are no records it will pass empty array [] in data..do the same at other places..
     if (all_products.length >= 0) {
       return {
         success: true,
@@ -933,6 +938,7 @@ const create_product_data = async (specification_data) => {
       attributes: ["brand_id", "brand_name"],
       raw: true,
     });
+    // TODO: use promise.all for find_product_type & find_product_brand
     if (find_product_type && find_product_brand) {
       const add_product_details = await _DB.product.create(
         {

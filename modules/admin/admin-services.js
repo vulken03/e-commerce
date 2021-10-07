@@ -5,7 +5,7 @@ const { constants } = require("../../utils/constant");
 const { decryptRequestData } = require("../../utils/encrypt");
 const admin_registration = async (req, res, next) => {
   try {
-    // TODO: Take below admin data from request body..
+    // C-TODO: Take below admin data from request body..
     const admin_data = req.body;
 
     const create_admin = await admin_model.create_admin(admin_data);

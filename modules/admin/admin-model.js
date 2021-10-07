@@ -24,7 +24,7 @@ const create_admin = async (admin_data) => {
 };
 
 const createSessionAdmin = async (admin_id) => {
-  // TODO: Try Catch is required in functions that are not public or are not kept/exported in module.exports ... follow the same at other places..
+  // C-TODO: Try Catch is required in functions that are not public or are not kept/exported in module.exports ... follow the same at other places..
   try {
     const session = await _DB.session.create({
       user_id: admin_id,
@@ -47,6 +47,7 @@ const createSessionAdmin = async (admin_id) => {
     }
   } catch (err) {
     throw err;
+    // TODO: Don't throw error, just "return false" and using logger log the error...only applicable to functions that are not public or are not kept/exported in module.exports..follow the same at other places..
   }
 };
 
