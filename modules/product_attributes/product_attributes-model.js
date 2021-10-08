@@ -1,3 +1,5 @@
+const { loggers } = require("winston");
+
 const create_product_type_attribute = async ({
   attribute_name,
   product_type_name,
@@ -31,13 +33,14 @@ const create_product_type_attribute = async ({
           attribute_value_list,
           { transaction, fields: ["attribute_id", "attribute_value"] }
         );
-        if (create_attribute_values) {
+        if (create_attribute_values.length >= 0) {
           await transaction.commit();
           return {
             success: true,
             data: create_attribute_values,
           };
         } else {
+          await transaction.rollback();
           const error_message = "error while creating attribute values";
           return {
             success: false,
@@ -47,6 +50,7 @@ const create_product_type_attribute = async ({
           };
         }
       } else {
+        await transaction.rollback();
         const error_message = "error while creating attribute";
         return {
           success: false,
@@ -56,6 +60,7 @@ const create_product_type_attribute = async ({
         };
       }
     } else {
+      await transaction.rollback();
       const error_message = "product type is not found";
       return {
         success: false,
@@ -66,7 +71,13 @@ const create_product_type_attribute = async ({
     }
   } catch (err) {
     await transaction.rollback();
-    throw err;
+    loggers.error(err);
+    return {
+      success: false,
+      data: null,
+      error: new Error(err).stack,
+      message: err,
+    };
   }
 };
 
@@ -108,15 +119,16 @@ const update_product_type_attribute = async (
         }
         const create_attribute_values = await _DB.attribute_value.bulkCreate(
           attribute_values_list,
-          { transaction,fields:["attribute_id","attribute_value"]}
+          { transaction, fields: ["attribute_id", "attribute_value"] }
         );
-        if (create_attribute_values) {
+        if (create_attribute_values.length >= 0) {
           await transaction.commit();
           return {
             success: true,
             data: null,
           };
         } else {
+          await transaction.rollback();
           const error_message = "error while creating attribute values";
           return {
             success: false,
@@ -126,6 +138,7 @@ const update_product_type_attribute = async (
           };
         }
       } else {
+        await transaction.rollback();
         const error_message = "error while updating product_type attribute";
         return {
           success: false,
@@ -135,6 +148,7 @@ const update_product_type_attribute = async (
         };
       }
     } else {
+      await transaction.rollback();
       const error_message = "attributes with this attribute_id is not found";
       return {
         success: false,
@@ -145,7 +159,13 @@ const update_product_type_attribute = async (
     }
   } catch (err) {
     await transaction.rollback();
-    throw err;
+    loggers.error(err);
+    return {
+      success: false,
+      data: null,
+      error: new Error(err).stack,
+      message: err,
+    };
   }
 };
 

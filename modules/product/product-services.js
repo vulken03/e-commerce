@@ -29,6 +29,7 @@ const create_product_type = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -52,6 +53,7 @@ const delete_product_type = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -87,6 +89,7 @@ const product_type_listing = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -103,6 +106,7 @@ const find_single_product_type = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -136,6 +140,7 @@ const update_product_type = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -166,6 +171,7 @@ const add_product_specification = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -189,6 +195,7 @@ const product_listing = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -205,6 +212,7 @@ const specific_product_listing = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -228,6 +236,7 @@ const delete_product = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 
@@ -262,6 +271,7 @@ const update_product = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+    logger.error(err);
   }
 };
 module.exports = {

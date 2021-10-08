@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
+const { loggers } = require("winston");
 const config = require("../../configuration/config");
 const { validatePassword } = require("../../utils/encrypt");
 
@@ -46,8 +47,8 @@ const createSessionAdmin = async (admin_id) => {
       return false;
     }
   } catch (err) {
-    throw err;
-    // TODO: Don't throw error, just "return false" and using logger log the error...only applicable to functions that are not public or are not kept/exported in module.exports..follow the same at other places..
+    logger.error(err);
+    return false;
   }
 };
 
@@ -74,6 +75,7 @@ const generateJwtToken = async (admin, uuid, isAdmin) => {
       return false;
     }
   } catch (err) {
+    logger.error(err);
     throw err;
   }
 };

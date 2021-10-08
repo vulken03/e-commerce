@@ -49,6 +49,7 @@ const create_product_type = async (productData) => {
           data: create_product_type,
         };
       } else {
+        await transaction.rollback();
         const error_message = "error while creating category or brand";
         return {
           success: false,
@@ -58,6 +59,7 @@ const create_product_type = async (productData) => {
         };
       }
     } else {
+      await transaction.rollback();
       const error_message = "error while creating product_type";
       return {
         success: false,
@@ -68,7 +70,13 @@ const create_product_type = async (productData) => {
     }
   } catch (err) {
     await transaction.rollback();
-    throw err;
+    logger.error(err);
+    return {
+      success: false,
+      data: null,
+      error: new Error(err).stack,
+      message: err,
+    };
   }
 };
 // C-TODO { product_type_id, product_category_list, sql_tran } - This is how you need to define the attributes/params of function. follow the same at other places..
@@ -122,13 +130,14 @@ const create_category = async ({
       transaction,
       fields: ["product_type_id", "category_id"],
     });
-    if (create_category) {
+    if (create_category.length >= 0) {
       return true;
     } else {
       return false;
     }
   } catch (err) {
-    throw err;
+    logger.error(err);
+    return false;
   }
 };
 const create_brand = async ({
@@ -175,16 +184,16 @@ const create_brand = async ({
       transaction,
       fields: ["product_type_id", "brand_id"],
     });
-    if (create_brand) {
+    if (create_brand >= 0) {
       return true;
     } else {
       return false;
     }
   } catch (err) {
-    throw err;
+    logger.error(err);
+    return false;
   }
 };
-
 const delete_product_type = async (product_type_id) => {
   const find_product_type_attribute = await _DB.product_type_attribute.findOne({
     where: {
@@ -237,50 +246,50 @@ const product_type_listing = async ({ category_name, brand_name }) => {
 
   if (category_name && !brand_name) {
     // TODO: why have you kept () around js statements?? there is no need of wrapping the line with ()
-    (filter.attributes = ["product_type_name"]),
-      (filter.include = {
+    filter.attributes = ["product_type_name"];
+    filter.include = {
+      model: _DB.product_category,
+      where: {
+        category_name,
+      },
+      attributes: [],
+      through: { attributes: [] },
+    };
+    filter.raw = true;
+  } else if (brand_name && !category_name) {
+    filter.attributes = ["product_type_name"];
+    filter.include = {
+      model: _DB.product_brand,
+      where: {
+        brand_name,
+      },
+      attributes: [],
+      through: { attributes: [] },
+    };
+    filter.raw = true;
+  } else if (category_name && brand_name) {
+    filter.attributes = ["product_type_name"];
+    filter.include = [
+      {
         model: _DB.product_category,
         where: {
           category_name,
         },
         attributes: [],
         through: { attributes: [] },
-      }),
-      (filter.raw = true);
-  } else if (brand_name && !category_name) {
-    (filter.attributes = ["product_type_name"]),
-      (filter.include = {
+      },
+      {
         model: _DB.product_brand,
         where: {
           brand_name,
         },
         attributes: [],
         through: { attributes: [] },
-      }),
-      (filter.raw = true);
-  } else if (category_name && brand_name) {
-    (filter.attributes = ["product_type_name"]),
-      (filter.include = [
-        {
-          model: _DB.product_category,
-          where: {
-            category_name,
-          },
-          attributes: [],
-          through: { attributes: [] },
-        },
-        {
-          model: _DB.product_brand,
-          where: {
-            brand_name,
-          },
-          attributes: [],
-          through: { attributes: [] },
-        },
-      ]),
-      (filter.raw = true);
+      },
+    ];
+    filter.raw = true;
   } else {
-    (filter.attributes = [
+    filter.attributes = [
       "product_type_name",
       [
         sequelize.fn(
@@ -296,33 +305,31 @@ const product_type_listing = async ({ category_name, brand_name }) => {
         ),
         "brand_list",
       ],
-    ]),
-      (filter.include = [
-        {
-          model: _DB.product_category,
+    ];
+    filter.include = [
+      {
+        model: _DB.product_category,
+        attributes: [],
+        through: {
           attributes: [],
-          through: {
-            attributes: [],
-          },
         },
-        {
-          model: _DB.product_brand,
+      },
+      {
+        model: _DB.product_brand,
+        attributes: [],
+        through: {
           attributes: [],
-          through: {
-            attributes: [],
-          },
         },
-      ]),
-      (filter.raw = true);
+      },
+    ];
+    filter.raw = true;
     filter.group = "product_type.product_type_id";
   }
   const find_product_types = await _DB.product_type.findAll(filter);
-  if (find_product_types.length >= 0) {
-    return {
-      success: true,
-      data: find_product_types,
-    };
-  }
+  return {
+    success: true,
+    data: find_product_types,
+  };
 };
 
 // const product_type_listing=async()=>{
@@ -410,12 +417,10 @@ const specific_product_type = async (product_type_id) => {
     group: "product_type.product_type_id",
     raw: true,
   });
-  if (find_product_type.length >= 0) {
-    return {
-      success: true,
-      data: find_product_type,
-    };
-  }
+  return {
+    success: true,
+    data: find_product_type,
+  };
 };
 
 const update_product_type = async (product_type_id, product_type_data) => {
@@ -446,14 +451,15 @@ const update_product_type = async (product_type_id, product_type_data) => {
           transaction,
         });
         const [m1, m2] = await Promise.all([category, brand]);
-        // TODO: return date contains success, message, data/error properties..but you are not using those prop's values to control the flow i.e. if success = false then you need to rollback and return the same data to service method. Do this wherever there's same mistake.
-        if (m1 && m2) {
+        // TODO: read about the difference between == & === in js and make changes in below line
+        if (m1.success == true && m2.success == true) {
           await transaction.commit();
           return {
             success: true,
             data: null,
           };
         } else {
+          await transaction.rollback();
           const error_message = "error while updating category and brand";
           return {
             success: false,
@@ -463,6 +469,7 @@ const update_product_type = async (product_type_id, product_type_data) => {
           };
         }
       } else {
+        await transaction.rollback();
         const error_message = "error while updating product_type";
         return {
           success: false,
@@ -472,6 +479,8 @@ const update_product_type = async (product_type_id, product_type_data) => {
         };
       }
     } else {
+
+      await transaction.rollback();
       const error_message =
         "product_type is not found with given product_type_id";
       return {
@@ -483,7 +492,13 @@ const update_product_type = async (product_type_id, product_type_data) => {
     }
   } catch (err) {
     await transaction.rollback();
-    throw err;
+    return {
+      success: false,
+      data: null,
+      error: new Error(err).stack,
+      message: err,
+    };
+    
   }
 };
 
@@ -537,8 +552,8 @@ const update_category = async ({
           fields: ["category_name"],
         }
       );
-      // TODO: create_category is an array so you need to check the length of the array..fix the same problem at other places..
-      if (create_category) {
+      // TODO: if length is 0 then you should return error
+      if (create_category.length >= 0) {
         const type_category_list = [];
         for (let b of create_category) {
           type_category_list.push({
@@ -550,7 +565,7 @@ const update_category = async ({
           type_category_list,
           { transcation, fields: ["product_type_id", "category_id"] }
         );
-        if (create_type_category) {
+        if (create_type_category.length >= 0) {
           return {
             success: true,
             data: null,
@@ -586,7 +601,13 @@ const update_category = async ({
       };
     }
   } catch (err) {
-    throw err;
+    logger.error(err);
+    return {
+      success: false,
+      data: null,
+      error: new Error(err).stack,
+      message: err,
+    };
   }
 };
 
@@ -637,7 +658,7 @@ const update_brand = async ({
         transcation,
         fields: ["brand_name"],
       });
-      if (create_brand) {
+      if (create_brand.length >= 0) {
         const type_brand_list = [];
         for (let b of create_brand) {
           type_brand_list.push({
@@ -649,7 +670,7 @@ const update_brand = async ({
           type_brand_list,
           { transcation, fields: ["product_type_id", "brand_id"] }
         );
-        if (create_type_brand) {
+        if (create_type_brand.length >= 0) {
           return {
             success: true,
             data: null,
@@ -686,7 +707,13 @@ const update_brand = async ({
     }
   } catch (err) {
     // C-TODO: update_brand is a private method that means, its not exported through module.exports or called by service method, so your return data should be similar to what you are using in try block i.e. object with status, error & message prop. and using logger, log the error.
-    throw err;
+    logger.error(err);
+    return {
+      success: false,
+      data: null,
+      error: new Error(err).stack,
+      message: err,
+    };
   }
 };
 // const test = async () => {
@@ -717,8 +744,8 @@ const product_listing = async (
   }
 
   if (product_name) {
-    // TODO: make sure product name search is case insensitive and use like operator here
-    filter.where.product_name = product_name;
+    // C-TODO: make sure product name search is case insensitive and use like operator here
+    filter.where.product_name = { [Op.like]: `%${product_name}%` };
   }
 
   if (low_price) {
@@ -822,13 +849,11 @@ GROUP BY p.product_id
       include: filter.include,
       group: "product.product_id",
     });
-    // TODO: if block is not needed, if there are no records it will pass empty array [] in data..do the same at other places..
-    if (all_products.length >= 0) {
-      return {
-        success: true,
-        data: all_products,
-      };
-    }
+    // C-TODO: if block is not needed, if there are no records it will pass empty array [] in data..do the same at other places..
+    return {
+      success: true,
+      data: all_products,
+    };
   }
 };
 
@@ -923,6 +948,7 @@ const create_product_data = async (specification_data) => {
       product_type_name,
       brand_name,
     } = specification_data;
+    // TODO: don't use await when you are calling the methods using promise.all! so remove await from find_product_type & find_product_brand & use m1 & m2 variable for the product type or brand data
     const find_product_type = await _DB.product_type.findOne({
       where: {
         product_type_name,
@@ -930,7 +956,7 @@ const create_product_data = async (specification_data) => {
       attributes: ["product_type_id", "product_type_name"],
       raw: true,
     });
-
+    
     const find_product_brand = await _DB.product_brand.findOne({
       where: {
         brand_name,
@@ -938,8 +964,9 @@ const create_product_data = async (specification_data) => {
       attributes: ["brand_id", "brand_name"],
       raw: true,
     });
-    // TODO: use promise.all for find_product_type & find_product_brand
-    if (find_product_type && find_product_brand) {
+    // C-TODO: use promise.all for find_product_type & find_product_brand
+    const [m1, m2] = await Promise.all([find_product_type, find_product_brand]);
+    if (m1 && m2) {
       const add_product_details = await _DB.product.create(
         {
           product_name,
@@ -986,13 +1013,14 @@ const create_product_data = async (specification_data) => {
               transaction,
               fields: ["product_id", "attribute_id", "value"],
             });
-          if (add_product_specification.length !== 0) {
+          if (add_product_specification.length >= 0) {
             await transaction.commit();
             return {
               success: true,
               data: null,
             };
           } else {
+            await transaction.rollback();
             const error_message = "error while creating product specifications";
             return {
               success: false,
@@ -1002,6 +1030,7 @@ const create_product_data = async (specification_data) => {
             };
           }
         } else {
+          await transaction.rollback();
           const error_message =
             "this product_type is not available in product_type schema";
           return {
@@ -1012,6 +1041,7 @@ const create_product_data = async (specification_data) => {
           };
         }
       } else {
+        await transaction.rollback();
         const error_message = "error while adding product details";
         return {
           success: false,
@@ -1021,6 +1051,7 @@ const create_product_data = async (specification_data) => {
         };
       }
     } else {
+      await transaction.rollback();
       const error_message =
         "product_type or product_category pr product_brand is is not found with given data";
       return {
@@ -1032,7 +1063,12 @@ const create_product_data = async (specification_data) => {
     }
   } catch (err) {
     await transaction.rollback();
-    throw err;
+    return {
+      success: false,
+      data: null,
+      error: new Error(err).stack,
+      message: err,
+    };
   }
 };
 const update_product = async (product_id, product_data) => {
