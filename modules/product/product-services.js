@@ -38,7 +38,7 @@ const delete_product_type = async (req, res, next) => {
     const product_type_deletion = await product_model.delete_product_type(
       req.params.product_type_id
     );
-    if (product_type_deletion.success == true) {
+    if (product_type_deletion.success === true) {
       res.status(constants.responseCodes.success).json({
         success: product_type_deletion.success,
         data: product_type_deletion.data,
@@ -81,7 +81,7 @@ const product_type_listing = async (req, res, next) => {
       category_name,
       brand_name,
     });
-    if (product_type.success == true) {
+    if (product_type.success ===true) {
       res.status(constants.responseCodes.success).json({
         success: product_type.success,
         data: product_type.data,
@@ -98,7 +98,7 @@ const find_single_product_type = async (req, res, next) => {
     const product_type = await product_model.specific_product_type(
       req.params.product_type_id
     );
-    if (product_type.success == true) {
+    if (product_type.success ===true) {
       res.status(constants.responseCodes.success).json({
         success: product_type.success,
         data: product_type.data,
@@ -125,7 +125,7 @@ const update_product_type = async (req, res, next) => {
       product_type_id,
       product_type_data
     );
-    if (update.success == true) {
+    if (update.success === true) {
       res.status(constants.responseCodes.success).json({
         success: update.success,
         data: update.data,
@@ -156,7 +156,7 @@ const add_product_specification = async (req, res, next) => {
     }
 
     const add_specifications = await product_model.create_product_data(data);
-    if (add_specifications.success == true) {
+    if (add_specifications.success === true) {
       res.status(constants.responseCodes.success).json({
         success: add_specifications.success,
         data: add_specifications.data,
@@ -188,7 +188,7 @@ const product_listing = async (req, res, next) => {
     //   return next(error);
     // }
     const all_products = await product_model.product_listing(data, filters);
-    if (all_products.success == true) {
+    if (all_products.success === true) {
       res
         .status(constants.responseCodes.success)
         .json({ success: all_products.success, data: all_products.data });
@@ -204,7 +204,7 @@ const specific_product_listing = async (req, res, next) => {
     const specific_product = await product_model.specific_product_listing(
       req.params.product_id
     );
-    if (specific_product.success == true) {
+    if (specific_product.success === true) {
       res.status(constants.responseCodes.success).json({
         success: specific_product.success,
         data: specific_product.data,
@@ -221,7 +221,7 @@ const delete_product = async (req, res, next) => {
     const product_deletion = await product_model.delete_product(
       req.params.product_id
     );
-    if (product_deletion.success == true) {
+    if (product_deletion.success === true) {
       res.status(constants.responseCodes.success).json({
         success: product_deletion.success,
         data: product_deletion.data,
@@ -256,7 +256,7 @@ const update_product = async (req, res, next) => {
       product_id,
       data
     );
-    if (product_updation.success == true) {
+    if (product_updation.success === true) {
       res.status(constants.responseCodes.success).json({
         success: product_updation.success,
         data: product_updation.data,

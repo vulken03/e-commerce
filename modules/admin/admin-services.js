@@ -9,7 +9,7 @@ const admin_registration = async (req, res, next) => {
     const admin_data = req.body;
 
     const create_admin = await admin_model.create_admin(admin_data);
-    if (create_admin.success == true) {
+    if (create_admin.success === true) {
       res.status(constants.responseCodes.success).json({
         success: create_admin.success,
         data: create_admin.data,
@@ -41,7 +41,7 @@ const admin_login = async (req, res, next) => {
       return next(error);
     }
     const login = await admin_model.admin_login(admin_data);
-    if (login.success == true) {
+    if (login.success === true) {
       res.status(constants.responseCodes.success).json({
         success: login.success,
         data: login.data,

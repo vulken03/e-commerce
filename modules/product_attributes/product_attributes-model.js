@@ -100,9 +100,8 @@ const update_product_type_attribute = async (
         await find_product_type_attribute.update(
           {
             attribute_name,
-            fields: ["attribute_name"],
           },
-          transaction
+          { transaction, fields: ["attribute_name"] }
         );
       if (update_product_type_attribute) {
         await _DB.attribute_value.destroy({

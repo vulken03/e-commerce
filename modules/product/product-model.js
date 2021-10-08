@@ -30,12 +30,12 @@ const create_product_type = async (productData) => {
       { transaction, fields: ["product_type_name"] }
     );
     if (create_product_type) {
-      const category = await create_category({
+      const category =create_category({
         create_product_type,
         product_category_list,
         transaction,
       });
-      const brand = await create_brand({
+      const brand =create_brand({
         create_product_type,
         product_brand_list,
         transaction,
@@ -436,23 +436,27 @@ const update_product_type = async (product_type_id, product_type_data) => {
     });
     if (find_product_type) {
       const product_type_update = await find_product_type.update(
-        { product_type_name, fields: ["product_type_name"] },
-        transaction
+        { product_type_name },
+
+        {
+          fields: ["product_type_name"],
+          transaction,
+        }
       );
       if (product_type_update) {
-        const category = await update_category({
+        const category =update_category({
           find_product_type,
           product_category_list,
           transaction,
         });
-        const brand = await update_brand({
+        const brand = update_brand({
           find_product_type,
           product_brand_list,
           transaction,
         });
         const [m1, m2] = await Promise.all([category, brand]);
         // TODO: read about the difference between == & === in js and make changes in below line
-        if (m1.success == true && m2.success == true) {
+        if (m1.success === true && m2.success === true) {
           await transaction.commit();
           return {
             success: true,
@@ -479,7 +483,6 @@ const update_product_type = async (product_type_id, product_type_data) => {
         };
       }
     } else {
-
       await transaction.rollback();
       const error_message =
         "product_type is not found with given product_type_id";
@@ -498,7 +501,6 @@ const update_product_type = async (product_type_id, product_type_data) => {
       error: new Error(err).stack,
       message: err,
     };
-    
   }
 };
 
@@ -553,6 +555,11 @@ const update_category = async ({
         }
       );
       // TODO: if length is 0 then you should return error
+     
+      /*->here, If category is electronics then electronics is already created in category table
+         that's why i use >=0 if electronics is created then it needs to add entry in
+          just type_category table
+      */
       if (create_category.length >= 0) {
         const type_category_list = [];
         for (let b of create_category) {
@@ -948,25 +955,22 @@ const create_product_data = async (specification_data) => {
       product_type_name,
       brand_name,
     } = specification_data;
-    // TODO: don't use await when you are calling the methods using promise.all! so remove await from find_product_type & find_product_brand & use m1 & m2 variable for the product type or brand data
-    // TODO: read/understand and practice the usage of promise.all & compare it with normal promise method call.
-    const find_product_type = await _DB.product_type.findOne({
-      where: {
-        product_type_name,
-      },
-      attributes: ["product_type_id", "product_type_name"],
-      raw: true,
-    });
-    
-    const find_product_brand = await _DB.product_brand.findOne({
-      where: {
-        brand_name,
-      },
-      attributes: ["brand_id", "brand_name"],
-      raw: true,
-    });
-    // C-TODO: use promise.all for find_product_type & find_product_brand
-    const [m1, m2] = await Promise.all([find_product_type, find_product_brand]);
+    const [m1, m2] = await Promise.all([
+      _DB.product_type.findOne({
+        where: {
+          product_type_name,
+        },
+        attributes: ["product_type_id", "product_type_name"],
+        raw: true,
+      }),
+      _DB.product_brand.findOne({
+        where: {
+          brand_name,
+        },
+        attributes: ["brand_id", "brand_name"],
+        raw: true,
+      }),
+    ]);
     if (m1 && m2) {
       const add_product_details = await _DB.product.create(
         {
@@ -975,8 +979,8 @@ const create_product_data = async (specification_data) => {
           product_description,
           quantity,
           price,
-          product_type_id: find_product_type.product_type_id,
-          brand_id: find_product_brand.brand_id,
+          product_type_id:m1.product_type_id,
+          brand_id: m2.brand_id,
         },
         {
           transaction,
@@ -994,7 +998,7 @@ const create_product_data = async (specification_data) => {
       if (add_product_details) {
         const findData = await _DB.product_type_attribute.findAll({
           where: {
-            product_type_id: find_product_type.product_type_id,
+            product_type_id:m1.product_type_id,
           },
           attributes: ["attribute_id", "attribute_name"],
           raw: true,
@@ -1090,19 +1094,16 @@ const update_product = async (product_id, product_data) => {
       ],
     });
     if (find_product) {
-      const update_product = await find_product.update(
-        product_data,
-        {
-          fields: [
-            "product_name",
-            "model_name",
-            "product_description",
-            "price",
-            "quantity",
-          ],
-        },
-        transaction
-      );
+      const update_product = await find_product.update(product_data, {
+        fields: [
+          "product_name",
+          "model_name",
+          "product_description",
+          "price",
+          "quantity",
+        ],
+        transaction,
+      });
       if (update_product) {
         await _DB.product_attribute_value.destroy({
           where: {
