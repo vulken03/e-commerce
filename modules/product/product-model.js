@@ -245,7 +245,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
   const filter = {};
 
   if (category_name && !brand_name) {
-    // TODO: why have you kept () around js statements?? there is no need of wrapping the line with ()
+    // C-TODO: why have you kept () around js statements?? there is no need of wrapping the line with ()
     filter.attributes = ["product_type_name"];
     filter.include = {
       model: _DB.product_category,
@@ -949,6 +949,7 @@ const create_product_data = async (specification_data) => {
       brand_name,
     } = specification_data;
     // TODO: don't use await when you are calling the methods using promise.all! so remove await from find_product_type & find_product_brand & use m1 & m2 variable for the product type or brand data
+    // TODO: read/understand and practice the usage of promise.all & compare it with normal promise method call.
     const find_product_type = await _DB.product_type.findOne({
       where: {
         product_type_name,
