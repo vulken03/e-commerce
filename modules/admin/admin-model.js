@@ -3,6 +3,7 @@ const moment = require("moment");
 const { loggers } = require("winston");
 const config = require("../../configuration/config");
 const { validatePassword } = require("../../utils/encrypt");
+const { logger } = require("../../utils/logger");
 
 const create_admin = async (admin_data) => {
   const admin_creation = await _DB.admin.create(admin_data, {
@@ -24,23 +25,28 @@ const create_admin = async (admin_data) => {
   }
 };
 
-const createSessionAdmin = async (admin_id) => {
-  // C-TODO: Try Catch is required in functions that are not public or are not kept/exported in module.exports ... follow the same at other places..
+const createSession = async ({ admin_id }) => {
   try {
-    const session = await _DB.session.create({
-      user_id: admin_id,
-      login_time: +moment().unix(),
-      time_to_leave: +moment().add(1, "days").unix(),
-      is_loggedout: 0,
-      is_admin: 1,
-      fields: [
-        "user_id",
-        "login_time",
-        "time_to_leave",
-        "is_loggedout",
-        "is_admin",
-      ],
-    });
+    const userId = admin_id;
+
+    const session = await _DB.session.create(
+      {
+        user_id: userId,
+        login_time: +moment().unix(),
+        time_to_leave: +moment().add(1, "days").unix(),
+        is_loggedout: 0,
+        is_admin: 1,
+      },
+      {
+        fields: [
+          "user_id",
+          "login_time",
+          "time_to_leave",
+          "is_loggedout",
+          "is_admin",
+        ],
+      }
+    );
     if (session) {
       return session;
     } else {
@@ -52,14 +58,14 @@ const createSessionAdmin = async (admin_id) => {
   }
 };
 
-const generateJwtToken = async (admin, uuid, isAdmin) => {
+const generateJwtToken = async (users, uuid, isAdmin) => {
   try {
-    const { username, admin_id } = admin;
-    const adminId = admin_id;
+    const { username, admin_id, customer_id } = users;
+    const userId = isAdmin == 1 ? admin_id : customer_id;
     const token = jwt.sign(
       {
         uuid,
-        adminId,
+        userId,
         username,
         isAdmin,
       },
@@ -76,36 +82,40 @@ const generateJwtToken = async (admin, uuid, isAdmin) => {
     }
   } catch (err) {
     logger.error(err);
-    throw err;
+    return false;
   }
 };
+
 const admin_login = async ({ username, password }) => {
-  let admin = await _DB.admin.findOne({
+  let users = await _DB.admin.findOne({
     where: {
       username,
     },
     attributes: ["admin_id", "username", "password"],
-    raw: true,
+    raw:true
   });
 
-  if (admin) {
+  if (users) {
     const isValidate = validatePassword(
       password,
-      admin.password.split(":")[1],
-      admin.password.split(":")[0]
+      users.password.split(":")[1],
+      users.password.split(":")[0]
     );
     if (isValidate) {
-      const session = await createSessionAdmin(admin.admin_id);
+      const session = await createSession(users);
       if (session) {
-        const { uuid, is_admin } = session;
-        const jwt = await generateJwtToken(admin, uuid, is_admin);
+        const jwt = await generateJwtToken(
+          users,
+          session.uuid,
+          session.is_admin
+        );
         if (jwt) {
           return {
             success: true,
             data: jwt,
           };
         } else {
-          const error_message = "error while generating session";
+          const error_message = "error while generating jwt";
           return {
             success: false,
             data: null,
@@ -114,7 +124,7 @@ const admin_login = async ({ username, password }) => {
           };
         }
       } else {
-        const error_message = "error while session creation";
+        const error_message = new Error("error while creating session");
         return {
           success: false,
           data: null,
@@ -123,7 +133,7 @@ const admin_login = async ({ username, password }) => {
         };
       }
     } else {
-      const error_message = "Password is wrong";
+      const error_message = new Error("you entered wrong password");
       return {
         success: false,
         data: null,
@@ -132,7 +142,7 @@ const admin_login = async ({ username, password }) => {
       };
     }
   } else {
-    const error_message = "admin not found";
+    const error_message = new Error("user not found with this username");
     return {
       success: false,
       data: null,
@@ -141,6 +151,7 @@ const admin_login = async ({ username, password }) => {
     };
   }
 };
+
 module.exports = {
   admin_login,
   create_admin,

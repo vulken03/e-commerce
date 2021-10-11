@@ -61,14 +61,21 @@ let isValidSession = async (uuid) => {
   }
 };
 
-let isValidUser = async ({ isAdmin, adminId }) => {
+let isValidUser = async ({ isAdmin, userId }) => {
   try {
     let isUserValid = false;
     let fetchedUser = null;
     if (isAdmin == 1) {
       fetchedUser = await _DB.admin.findOne({
         where: {
-          admin_id: adminId,
+          admin_id: userId,
+        },
+        raw: true,
+      });
+    } else {
+      fetchedUser = await _DB.customer.findOne({
+        where: {
+          customer_id: userId,
         },
         raw: true,
       });

@@ -1,6 +1,7 @@
 const sequelize = require("sequelize");
 const { Op } = require("sequelize");
 const helper = require("../../utils/helper");
+const { decryptRequestData } = require("../../utils/encrypt");
 const create_product_type = async (productData) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -29,13 +30,14 @@ const create_product_type = async (productData) => {
       },
       { transaction, fields: ["product_type_name"] }
     );
+    console.log(create_product_type);
     if (create_product_type) {
-      const category =create_category({
+      const category = await create_category({
         create_product_type,
         product_category_list,
         transaction,
       });
-      const brand =create_brand({
+      const brand = await create_brand({
         create_product_type,
         product_brand_list,
         transaction,
@@ -184,7 +186,7 @@ const create_brand = async ({
       transaction,
       fields: ["product_type_id", "brand_id"],
     });
-    if (create_brand >= 0) {
+    if (create_brand.length >= 0) {
       return true;
     } else {
       return false;
@@ -444,7 +446,7 @@ const update_product_type = async (product_type_id, product_type_data) => {
         }
       );
       if (product_type_update) {
-        const category =update_category({
+        const category = update_category({
           find_product_type,
           product_category_list,
           transaction,
@@ -555,7 +557,7 @@ const update_category = async ({
         }
       );
       // TODO: if length is 0 then you should return error
-     
+
       /*->here, If category is electronics then electronics is already created in category table
          that's why i use >=0 if electronics is created then it needs to add entry in
           just type_category table
@@ -979,7 +981,7 @@ const create_product_data = async (specification_data) => {
           product_description,
           quantity,
           price,
-          product_type_id:m1.product_type_id,
+          product_type_id: m1.product_type_id,
           brand_id: m2.brand_id,
         },
         {
@@ -998,7 +1000,7 @@ const create_product_data = async (specification_data) => {
       if (add_product_details) {
         const findData = await _DB.product_type_attribute.findAll({
           where: {
-            product_type_id:m1.product_type_id,
+            product_type_id: m1.product_type_id,
           },
           attributes: ["attribute_id", "attribute_name"],
           raw: true,

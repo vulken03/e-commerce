@@ -19,8 +19,8 @@ const validatePassword = (password, passwordHash, salt) => {
 };
 
 let obj = {
-  username: "Viraj@2000",
-  password: "1234",
+  username: "Viraj",
+  password: "abc",
 };
 const data = JSON.stringify(obj);
 console.log("raw data:", data);

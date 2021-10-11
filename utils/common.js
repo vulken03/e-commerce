@@ -1,3 +1,4 @@
+const mailer=require('./mailer')
 let Validator = require("jsonschema").Validator;
 let v = new Validator();
 const { constants } = require("./constant");
@@ -26,7 +27,27 @@ const allowAdminOnly = (req, res, next) => {
   }
 };
 
+const sendEmail = async (to, subject, html) => {
+  try {
+    if (!config.get("mailer.from")) {
+      throw new Error("Empty from properti.Please config the mailer.");
+    }
+    const gmailMailer = mailer.getGmailTransport();
+    await gmailMailer.sendMail({
+      from: config.get("mailer.from"),
+      to,
+      subject,
+      html,
+    });
+    return true;
+  } catch (err) {
+    logger.error("Error sending email");
+    throw err;
+  }
+};
+
 module.exports = {
   schemaValidator,
   allowAdminOnly,
+  sendEmail,
 };
