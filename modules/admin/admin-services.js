@@ -3,6 +3,7 @@ const admin_schema = require("./admin-schema");
 const common = require("../../utils/common");
 const { constants } = require("../../utils/constant");
 const { decryptRequestData } = require("../../utils/encrypt");
+const { logger } = require("../../utils/logger");
 const admin_registration = async (req, res, next) => {
   try {
     // C-TODO: Take below admin data from request body..

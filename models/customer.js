@@ -10,7 +10,7 @@ module.exports = (sequelize, Sequelize) => {
         notNull: true,
       },
       name:{
-        type: Sequelize.STRING(20),
+        type: Sequelize.STRING(40),
         allowNull: false,
       },
       username: {

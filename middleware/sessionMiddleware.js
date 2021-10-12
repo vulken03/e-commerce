@@ -1,15 +1,15 @@
-const moment = require("moment");
 const jwt = require("jsonwebtoken");
 const { constants } = require("../utils/constant");
-//const moment=require('moment')
+const moment = require("moment");
 const config = require("../configuration/config");
 const { logger } = require("../utils/logger");
 
-let verifyJWT = async (req) => {
+const verifyJWT = async (req) => {
   try {
     let userData = null;
-    if (req.url === "/resetPassword") {
+    if (req.url === "/resetpassword") {
       userData = await verifyPasswordResetJwt(req);
+      return userData;
     } else {
       let token = req.headers["authorization"];
 
@@ -19,8 +19,7 @@ let verifyJWT = async (req) => {
       if (userData) {
         return userData;
       } else {
-        const error = new Error("userData not found");
-        throw error;
+        return false;
       }
     }
   } catch (err) {
@@ -128,18 +127,23 @@ let authenticateRequest = async (req, res, next) => {
 
 let verifyPasswordResetJwt = async (req) => {
   const token = jwt.decode(req.headers.authorization);
-  console.log(token);
-  const userDetails = await _DB.user.findOne({
+  const userDetails = await _DB.customer.findOne({
     where: {
-      user_id: token.userId,
+      customer_id: token.userId,
     },
     raw: true,
   });
   if (userDetails) {
-    let userData = jwt.verify(req.headers.authorization, "onlinewebtutorkey", {
-      algorithms: "HS384",
-    });
+    const userData = jwt.verify(
+      req.headers.authorization,
+      "onlinewebtutorkey",
+      {
+        algorithms: ["HS384"],
+      }
+    );
     return userData;
+  } else {
+    return false;
   }
 };
 module.exports = {

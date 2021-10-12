@@ -3,6 +3,7 @@ const { constants } = require("../../utils/constant");
 const product_schema = require("./product-schema");
 const common = require("../../utils/common");
 const url = require("url");
+const { logger } = require("../../utils/logger");
 const create_product_type = async (req, res, next) => {
   try {
     const data = req.body;

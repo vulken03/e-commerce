@@ -3,7 +3,7 @@ const product_attributes_model = require("./product_attributes-model");
 const product_attributes_schema = require("./product_attributes-schema");
 const common = require("../../utils/common");
 const { constants } = require("../../utils/constant");
-
+const { logger } = require("../../utils/logger");
 const add_product_type_attributes = async (req, res, next) => {
   try {
     const data = req.body;
