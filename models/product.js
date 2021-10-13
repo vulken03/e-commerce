@@ -43,6 +43,7 @@ module.exports = (sequelize, Sequelize) => {
     });
     product.belongsTo(models.product_type, { foreignKey: "product_type_id" });
     product.belongsTo(models.product_brand, { foreignKey: "brand_id" });
+    product.hasMany(models.cart, { foreignKey: "product_id" });
   };
   return product;
 };

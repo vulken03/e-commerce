@@ -12,7 +12,7 @@ const signup = async (userData) => {
       where: {
         username: userData.username,
       },
-      attributes: ["username"],
+      attributes: ["customer_id", "username"],
     });
     if (find_customer) {
       error_message = "customer is already created with given username";
@@ -24,41 +24,85 @@ const signup = async (userData) => {
       };
     } else {
       const transaction = await _DB.sequelize.transaction();
-      const create_customer = await _DB.customer.create(userData, {
-        transaction,
-        fields: [
-          "name",
-          "username",
-          "email",
-          "phoneno",
-          "password",
-          "city",
-          "pincode",
-          "state",
-          "country",
-          "address",
-        ],
-      });
+      const {
+        name,
+        username,
+        email,
+        phoneno,
+        password,
+        street,
+        city,
+        pincode,
+        state,
+        country,
+      } = userData;
+      const create_customer = await _DB.customer.create(
+        {
+          name,
+          username,
+          email,
+          phoneno,
+          password,
+        },
+        {
+          transaction,
+          fields: ["name", "username", "email", "phoneno", "password"],
+        }
+      );
       if (create_customer) {
-        const create_token = await _DB.verification_token.create(
+        const create_address = await _DB.customer_address.create(
           {
+            street,
+            city,
+            pincode,
+            state,
+            country,
+            is_default: 1,
             customer_id: create_customer.customer_id,
           },
-          { transaction, fields: ["customer_id", "token"] }
+          {
+            transaction,
+            fields: [
+              "street",
+              "city",
+              "pincode",
+              "state",
+              "country",
+              "is_default",
+              "customer_id",
+            ],
+          }
         );
+        if (create_address) {
+          const create_token = await _DB.verification_token.create(
+            {
+              customer_id: create_customer.customer_id,
+            },
+            { transaction, fields: ["customer_id", "token"] }
+          );
 
-        if (create_token) {
-          await transaction.commit();
-          await sendEmail({
-            to: create_customer.email,
-            subject: "account verification",
-            html: `<a href="http://localhost:8085/email_verify/${create_token.token}">click here</a>`,
-          });
+          if (create_token) {
+            await transaction.commit();
+            await sendEmail({
+              to: create_customer.email,
+              subject: "account verification",
+              html: `<h3>${create_token.token}</h3>`,
+            });
+            return {
+              success: true,
+              data: null,
+            };
+          }
+        } else {
+          await transaction.rollback();
+          const error_message = "error while creating address...";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
         }
-        return {
-          success: true,
-          data: create_customer,
-        };
       } else {
         await transaction.rollback();
         const error_message = "error while creating customer...";
@@ -82,26 +126,31 @@ const signup = async (userData) => {
   }
 };
 
-const verify_email = async (uuid) => {
+const verify_email = async (token) => {
+  const { uuid } = token;
   const find_token = await _DB.verification_token.findOne({
     where: {
       token: uuid,
     },
-    attributes: ["token"],
+    attributes: ["customer_id", "token"],
     raw: true,
   });
   if (find_token) {
-    await _DB.customer.update({
-      is_verified: 1,
-      where: {
-        customer_id: find_token.customer_id,
+    await _DB.customer.update(
+      {
+        is_verified: 1,
       },
-      fields: ["is_verified"],
-    });
+      {
+        where: {
+          customer_id: find_token.customer_id,
+        },
+        fields: ["is_verified"],
+      }
+    );
     return {
       success: true,
       data: null,
-      message: "email id verified",
+      message: "email_id verified",
     };
   } else {
     const error_message = "error in token...";
@@ -175,35 +224,45 @@ const generateJwtToken = async (users, uuid, isAdmin) => {
 };
 
 const login = async ({ email, password }) => {
-  let users = await _DB.customer.findOne({
+  const users = await _DB.customer.findOne({
     where: {
       email,
     },
-    attributes: ["username", "customer_id", "email", "password"],
+    attributes: ["username", "customer_id", "email", "password", "is_verified"],
     raw: true,
   });
 
   if (users) {
-    const isValidate = validatePassword(
-      password,
-      users.password.split(":")[1],
-      users.password.split(":")[0]
-    );
-    if (isValidate) {
-      const session = await createSession(users);
-      if (session) {
-        const jwt = await generateJwtToken(
-          users,
-          session.uuid,
-          session.is_admin
-        );
-        if (jwt) {
-          return {
-            success: true,
-            data: jwt,
-          };
+    if (users.is_verified) {
+      const isValidate = validatePassword(
+        password,
+        users.password.split(":")[1],
+        users.password.split(":")[0]
+      );
+      if (isValidate) {
+        const session = await createSession(users);
+        if (session) {
+          const jwt = await generateJwtToken(
+            users,
+            session.uuid,
+            session.is_admin
+          );
+          if (jwt) {
+            return {
+              success: true,
+              data: jwt,
+            };
+          } else {
+            const error_message = "error while generating jwt";
+            return {
+              success: false,
+              data: null,
+              error: new Error(error_message).stack,
+              message: error_message,
+            };
+          }
         } else {
-          const error_message = "error while generating jwt";
+          const error_message = new Error("error while creating session");
           return {
             success: false,
             data: null,
@@ -212,7 +271,7 @@ const login = async ({ email, password }) => {
           };
         }
       } else {
-        const error_message = new Error("error while creating session");
+        const error_message = new Error("you entered wrong password");
         return {
           success: false,
           data: null,
@@ -221,7 +280,7 @@ const login = async ({ email, password }) => {
         };
       }
     } else {
-      const error_message = new Error("you entered wrong password");
+      const error_message = new Error("email is not verified");
       return {
         success: false,
         data: null,
@@ -245,57 +304,42 @@ const update_profile = async (
   customer_id,
   customer_params_id
 ) => {
-  const {
-    name,
-    username,
-    email,
-    phoneno,
-    city,
-    pincode,
-    state,
-    country,
-    address,
-  } = customer_data;
+  const { name, username, email, phoneno } = customer_data;
   const find_customer_data = await _DB.customer.findOne({
     where: {
       customer_id: customer_params_id,
     },
     attributes: ["customer_id"],
   });
-  if (find_customer_data.customer_id === customer_id) {
-    const update_profile = await find_customer_data.update(
-      {
-        name,
-        username,
-        email,
-        phoneno,
-        city,
-        pincode,
-        state,
-        country,
-        address,
-      },
-      {
-        fields: [
-          "name",
-          "username",
-          "email",
-          "phoneno",
-          "city",
-          "pincode",
-          "state",
-          "country",
-          "address",
-        ],
+  if (find_customer_data) {
+    if (find_customer_data.customer_id === customer_id) {
+      const update_profile = await find_customer_data.update(
+        {
+          name,
+          username,
+          email,
+          phoneno,
+        },
+        {
+          fields: ["name", "username", "email", "phoneno"],
+        }
+      );
+      if (update_profile) {
+        return {
+          success: true,
+          data: null,
+        };
+      } else {
+        const error_message = "error while updating..";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
       }
-    );
-    if (update_profile) {
-      return {
-        success: true,
-        data: null,
-      };
     } else {
-      const error_message = "error while updating..";
+      const error_message = "you can't update data with given customer_id";
       return {
         success: false,
         data: null,
@@ -303,8 +347,8 @@ const update_profile = async (
         message: error_message,
       };
     }
-  } else {
-    const error_message = "you can't update data with given customer_id";
+  }else{
+    const error_message="customer is npt found with given customer_id"
     return {
       success: false,
       data: null,
@@ -516,6 +560,148 @@ const reset_password = async (customer_id, password) => {
   }
 };
 
+const address_manage = async (customer_id, addressData) => {
+  const { street, city, pincode, state, country } = addressData;
+  const find_customer = await _DB.customer.findOne({
+    where: {
+      customer_id,
+    },
+    attributes: ["customer_id"],
+    raw: true,
+  });
+  if (find_customer) {
+    const add_address = await _DB.customer_address.create(
+      {
+        street,
+        city,
+        pincode,
+        state,
+        country,
+        is_default: 0,
+        customer_id: find_customer.customer_id,
+      },
+      {
+        fields: [
+          "street",
+          "city",
+          "pincode",
+          "state",
+          "country",
+          "is_default",
+          "customer_id",
+        ],
+      }
+    );
+    if (add_address) {
+      return {
+        success: true,
+        data: null,
+      };
+    } else {
+      const error_message = "error while creating address..";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  }
+};
+
+const delete_address = async (address_id, customer_id) => {
+  const find_address = await _DB.customer_address.findOne({
+    where: {
+      address_id,
+    },
+    attributes: ["address_id", "is_default", "customer_id"],
+  });
+  if (find_address) {
+    if (
+      find_address.customer_id === customer_id &&
+      find_address.is_default == false
+    ) {
+      const address_deletion = await find_address.destroy();
+      if (address_deletion) {
+        return {
+          success: true,
+          data: null,
+        };
+      } else {
+        const error_message = "error while deleting..";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
+      }
+    } else {
+      const error_message = "unauthorised access..";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    const error_message = "not find address with given address_id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
+const update_address = async (address_id, customer_id, address_data) => {
+  const find_address = await _DB.customer_address.findOne({
+    where: {
+      address_id,
+    },
+    attributes: ["address_id", "customer_id"],
+  });
+  if (find_address) {
+    if (find_address.customer_id === customer_id) {
+      const address_updation = await find_address.update(address_data, {
+        fields: ["street", "city", "pincode", "state", "country"],
+      });
+      if (address_updation) {
+        return {
+          success: true,
+          data: null,
+        };
+      } else {
+        const error_message = "error while updating..";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
+      }
+    } else {
+      const error_message = "unauthorised access..";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    const error_message = "not find address with given address_id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
 module.exports = {
   signup,
   verify_email,
@@ -524,4 +710,7 @@ module.exports = {
   update_password,
   sendPasswordResetMail,
   reset_password,
+  address_manage,
+  delete_address,
+  update_address,
 };

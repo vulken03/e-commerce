@@ -12,5 +12,8 @@ module.exports = (app) => {
   );
   app.post("/password_reset_mail", customer_service.passwordResetMail);
   app.put("/resetpassword", customer_service.password_reset);
-  app.put("/email_verify/:uuid", customer_service.verify_email);
+  app.post("/email_verify", customer_service.verify_email);
+  app.post("/manage_address", customer_service.address_manage);
+  app.delete("/delete_address/:address_id", customer_service.delete_address);
+  app.put("/update_address/:address_id", customer_service.update_address);
 };

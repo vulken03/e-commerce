@@ -144,6 +144,13 @@ const update_password = async (req, res, next) => {
 const passwordResetMail = async (req, res, next) => {
   try {
     const user = req.body;
+    const { isValid, error } = common.schemaValidator(
+      user,
+      customer_schema.password_reset_mail_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
     const resetPassword = await customer_model.sendPasswordResetMail(user);
     if (resetPassword.success === true) {
       res.status(constants.responseCodes.success).json({
@@ -167,6 +174,13 @@ const password_reset = async (req, res, next) => {
   try {
     const user = req.body;
     const customer_id = req.user.customer_id;
+    const { isValid, error } = common.schemaValidator(
+      user,
+      customer_schema.password_reset_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
     const resetPassword = await customer_model.reset_password(
       customer_id,
       user.password
@@ -191,8 +205,15 @@ const password_reset = async (req, res, next) => {
 
 const verify_email = async (req, res, next) => {
   try {
-    const uuid = req.params.uuid;
-    const email_verification = await customer_model.verify_email(uuid);
+    const token = req.body;
+    const { isValid, error } = common.schemaValidator(
+      token,
+      customer_schema.verify_token_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const email_verification = await customer_model.verify_email(token);
     if (email_verification.success === true) {
       res.status(constants.responseCodes.success).json({
         success: email_verification.success,
@@ -210,6 +231,100 @@ const verify_email = async (req, res, next) => {
     next(err);
   }
 };
+
+const address_manage = async (req, res, next) => {
+  try {
+    const address = req.body;
+    const customer_id = req.user.customer_id;
+    const { isValid, error } = common.schemaValidator(
+      address,
+      customer_schema.manage_address_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const manage_address = await customer_model.address_manage(
+      customer_id,
+      address
+    );
+    if (manage_address.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: manage_address.success,
+        data: manage_address.data,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: manage_address.success,
+        data: manage_address.data,
+        error: manage_address.error,
+        message: manage_address.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+const delete_address = async (req, res, next) => {
+  try {
+    const address_id = req.params.address_id;
+    const customer_id = req.user.customer_id;
+    const address_delete = await customer_model.delete_address(
+      address_id,
+      customer_id
+    );
+    if (address_delete.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: address_delete.success,
+        data: address_delete.data,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: address_delete.success,
+        data: address_delete.data,
+        error: address_delete.error,
+        message: address_delete.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+const update_address = async (req, res, next) => {
+  try {
+    const address_id = req.params.address_id;
+    const customer_id = req.user.customer_id;
+    const address = req.body;
+    const { isValid, error } = common.schemaValidator(
+      address,
+      customer_schema.manage_address_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const address_update = await customer_model.update_address(
+      address_id,
+      customer_id,
+      address
+    );
+    if (address_update.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: address_update.success,
+        data: address_update.data,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: address_update.success,
+        data: address_update.data,
+        error: address_update.error,
+        message: address_update.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   signup,
   login,
@@ -218,4 +333,7 @@ module.exports = {
   passwordResetMail,
   password_reset,
   verify_email,
+  address_manage,
+  delete_address,
+  update_address,
 };

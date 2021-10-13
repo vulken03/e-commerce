@@ -7,9 +7,9 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        notNull: true,
+        allowNull: false,
       },
-      name:{
+      name: {
         type: Sequelize.STRING(40),
         allowNull: false,
       },
@@ -30,26 +30,6 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: false,
       },
       password: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      city: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
-      },
-      pincode: {
-        type: Sequelize.INTEGER(6),
-        allowNull: false,
-      },
-      state: {
-        type: Sequelize.STRING(50),
-        allowNull: false,
-      },
-      country: {
-        type: Sequelize.STRING(15),
-        allowNull: false,
-      },
-      address: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -78,6 +58,12 @@ module.exports = (sequelize, Sequelize) => {
     customer.hasOne(models.verification_token, {
       foreignKey: "customer_id",
     });
+    customer.hasMany(models.customer_address, {
+      foreignKey: "customer_id",
+    });
+    customer.hasMany(models.cart,{
+      foreignKey:"customer_id"
+    })
   };
   return customer;
 };
