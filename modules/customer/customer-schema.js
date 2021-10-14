@@ -95,6 +95,7 @@ const update_password_schema = {
     new_password: {
       type: "string",
     },
+    required: ["old_password", "new_password"],
   },
 };
 
@@ -105,6 +106,7 @@ const password_reset_mail_schema = {
       type: "string",
       maxLength: 254,
     },
+    required: ["email"],
   },
 };
 
@@ -114,6 +116,7 @@ const password_reset_schema = {
     password: {
       type: "string",
     },
+    required: ["password"],
   },
 };
 
@@ -123,6 +126,7 @@ const verify_token_schema = {
     uuid: {
       type: "string",
     },
+    required: ["uuid"],
   },
 };
 
