@@ -94,8 +94,28 @@ const manage_quantity = async (req, res, next) => {
     logger.error(err);
   }
 };
+
+const list_cart_items = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const filters = req.body || {};
+    const cart_listing = await customer_product_model.list_cart_items(
+      customer_id,
+      filters
+    );
+    if (cart_listing.success === true) {
+      res
+        .status(constants.responseCodes.success)
+        .json({ success: cart_listing.success, data: cart_listing.data });
+    }
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
 module.exports = {
   add_products_to_cart,
   remove_products_from_cart,
   manage_quantity,
+  list_cart_items,
 };

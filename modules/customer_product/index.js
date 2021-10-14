@@ -5,5 +5,9 @@ module.exports = (app) => {
     "/delete_from_cart/:cart_id",
     customer_product_service.remove_products_from_cart
   );
-  app.put("/manage_quantity/:cart_id", customer_product_service.manage_quantity);
+  app.put(
+    "/manage_quantity/:cart_id",
+    customer_product_service.manage_quantity
+  );
+  app.all("/list_cart_items", customer_product_service.list_cart_items);
 };

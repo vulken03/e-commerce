@@ -257,15 +257,14 @@ const list_cart_items = async (
     limit: filter.limit,
     order: filter.order,
     attributes: [
-      [sequelize.fn("COUNT", "cart.quantity"), "total_quantity"],
-      [sequelize.fn("COUNT", "cart.price"), "total_price"],
-      "product.product_name",
+      [sequelize.fn("COUNT", "*"), "total_items"],
+      [sequelize.fn("SUM", sequelize.col("cart.price")), "total_price"],
     ],
     include: {
       model: _DB.product,
       attributes: [],
     },
-    group: "customer.customer_id",
+    group: "customer_id",
   });
   return {
     success: true,
