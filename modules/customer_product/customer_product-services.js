@@ -95,27 +95,61 @@ const manage_quantity = async (req, res, next) => {
   }
 };
 
-const list_cart_items = async (req, res, next) => {
+const list_cart = async (req, res, next) => {
   try {
     const customer_id = req.user.customer_id;
     const filters = req.body || {};
-    const cart_listing = await customer_product_model.list_cart_items(
+    const cart_listing = await customer_product_model.list_cart(
       customer_id,
       filters
     );
-    if (cart_listing.success === true) {
       res
         .status(constants.responseCodes.success)
         .json({ success: cart_listing.success, data: cart_listing.data });
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
+
+const place_order = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const data = req.body;
+    const { isValid, error } = common.schemaValidator(
+      data,
+      customer_product_schema.place_order_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const { address_id } = data;
+    const order = await customer_product_model.place_order(
+      customer_id,
+      address_id
+    );
+    if (order.success === true) {
+      res
+        .status(constants.responseCodes.success)
+        .json({ success: order.success, data: order.data });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: order.success,
+        data: order.data,
+        error: order.error,
+        message: order.message,
+      });
     }
   } catch (err) {
     next(err);
     logger.error(err);
   }
 };
+
 module.exports = {
   add_products_to_cart,
   remove_products_from_cart,
   manage_quantity,
-  list_cart_items,
+  list_cart,
+  place_order,
 };

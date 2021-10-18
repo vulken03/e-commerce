@@ -9,5 +9,6 @@ module.exports = (app) => {
     "/manage_quantity/:cart_id",
     customer_product_service.manage_quantity
   );
-  app.all("/list_cart_items", customer_product_service.list_cart_items);
+  app.all("/list_cart", customer_product_service.list_cart);
+  app.post("/place_order", customer_product_service.place_order);
 };

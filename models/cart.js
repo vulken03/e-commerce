@@ -18,10 +18,6 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
-    price: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
     is_out_of_stock: {
       type: Sequelize.BOOLEAN,
       defaultValue: false,

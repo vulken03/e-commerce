@@ -21,7 +21,17 @@ const manage_quantity_schema = {
   },
 };
 
+const place_order_schema = {
+  type: "object",
+  properties: {
+    address_id: {
+      type: "integer",
+    },
+  },
+};
+
 module.exports = {
   add_to_cart_schema,
   manage_quantity_schema,
+  place_order_schema,
 };

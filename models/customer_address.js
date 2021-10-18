@@ -18,9 +18,9 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.STRING(35),
       allowNull: false,
     },
-    pincode:{
-        type: Sequelize.STRING(35),
-        allowNull: false,
+    pincode: {
+      type: Sequelize.STRING(35),
+      allowNull: false,
     },
     state: {
       type: Sequelize.STRING(35),
@@ -39,6 +39,9 @@ module.exports = (sequelize, Sequelize) => {
   customer_address.associate = (models) => {
     customer_address.belongsTo(models.customer, {
       foreignKey: "customer_id",
+    });
+    customer_address.hasMany(models.order, {
+      foreignKey: "address_id",
     });
   };
   return customer_address;
