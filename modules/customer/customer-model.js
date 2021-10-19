@@ -7,6 +7,7 @@ const config = require("../../configuration/config");
 const { validatePassword } = require("../../utils/encrypt");
 const { logger } = require("../../utils/logger");
 const signup = async (userData) => {
+  const transaction = await _DB.sequelize.transaction();
   try {
     const find_customer = await _DB.customer.findOne({
       where: {
@@ -23,7 +24,6 @@ const signup = async (userData) => {
         message: error_message,
       };
     } else {
-      const transaction = await _DB.sequelize.transaction();
       const {
         name,
         username,
@@ -46,7 +46,14 @@ const signup = async (userData) => {
         },
         {
           transaction,
-          fields: ["name", "username", "email", "phoneno", "password"],
+          fields: [
+            "customer_id",
+            "name",
+            "username",
+            "email",
+            "phoneno",
+            "password",
+          ],
         }
       );
       if (create_customer) {
@@ -115,7 +122,7 @@ const signup = async (userData) => {
       }
     }
   } catch (err) {
-    //await transcation.rollback();
+    await transcation.rollback();
     logger.error(err);
     return {
       success: false,
@@ -347,8 +354,8 @@ const update_profile = async (
         message: error_message,
       };
     }
-  }else{
-    const error_message="customer is npt found with given customer_id"
+  } else {
+    const error_message = "customer is npt found with given customer_id";
     return {
       success: false,
       data: null,

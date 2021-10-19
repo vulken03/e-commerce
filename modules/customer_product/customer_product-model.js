@@ -321,11 +321,12 @@ const place_order = async (customer_id, address_id) => {
   const address_data = find_address(customer_id, address_id);
   const [cart, address] = await Promise.all([cart_data, address_data]);
   if (cart && address) {
-    const { total_price } = cart;
+    const { total_product_count, total_price } = cart;
     const confirm_order = await _DB.order.create(
       {
         customer_id: cart.customer_id,
         address_id: address.address_id,
+        quantity: total_product_count,
         price: total_price,
         gst: (total_price * 1.5) / 100,
         shipping_fee: 50,
@@ -335,6 +336,7 @@ const place_order = async (customer_id, address_id) => {
         fields: [
           "customer_id",
           "address_id",
+          "quantity",
           "price",
           "gst",
           "shipping_fee",
@@ -424,10 +426,70 @@ const find_address = (customer_id, address_id) => {
     return false;
   }
 };
+
+const list_order_details = async (
+  customer_id,
+  { sortby = {}, pagination = {} }
+) => {
+  let filter = {};
+  filter.order = helper.getSortFilter(sortby);
+  if ("page" in pagination && "limit" in pagination) {
+    page = Number(pagination.page);
+    filter.offset = Number((pagination.page - 1) * pagination.limit);
+    filter.limit = Number(pagination.limit);
+  }
+  const order_details = await _DB.order.findAll({
+    where: {
+      customer_id,
+    },
+    offset: filter.offset,
+    limit: filter.limit,
+    order: filter.order,
+    attributes: [
+      "order_id",
+      "price",
+      "gst",
+      "quantity",
+      "shipping_fee",
+      "subtotal",
+    ],
+    raw: true,
+  });
+
+  return {
+    success: true,
+    data: order_details,
+  };
+};
+
+const specific_order_details = async (customer_id, order_id) => {
+  const find_specific_order = await _DB.order.findOne({
+    where: {
+      order_id,
+      customer_id,
+    },
+    attributes: [
+      "order_id",
+      "price",
+      "gst",
+      "quantity",
+      "shipping_fee",
+      "subtotal",
+    ],
+    raw: true,
+  });
+  return {
+    success: true,
+    data: find_specific_order,
+  };
+};
+
 module.exports = {
   add_products_to_cart,
   remove_from_cart,
   manage_quantity,
   list_cart,
   place_order,
+  list_order_details,
+  specific_order_details,
 };

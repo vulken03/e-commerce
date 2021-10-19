@@ -22,6 +22,11 @@ const signupSchema = {
     password: {
       type: "string",
     },
+    email: {
+      type: "string",
+      maxLength: 254,
+      format:"email",
+    },
     name: {
       type: "string",
       maxLength: 20,

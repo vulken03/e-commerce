@@ -2,6 +2,7 @@ const { constants } = require("../../utils/constant");
 const common = require("../../utils/common");
 const customer_product_model = require("./customer_product-model");
 const customer_product_schema = require("./customer_product-schema");
+const { logger } = require("../../utils/logger");
 const add_products_to_cart = async (req, res, next) => {
   try {
     const data = req.body;
@@ -103,9 +104,9 @@ const list_cart = async (req, res, next) => {
       customer_id,
       filters
     );
-      res
-        .status(constants.responseCodes.success)
-        .json({ success: cart_listing.success, data: cart_listing.data });
+    res
+      .status(constants.responseCodes.success)
+      .json({ success: cart_listing.success, data: cart_listing.data });
   } catch (err) {
     next(err);
     logger.error(err);
@@ -146,10 +147,49 @@ const place_order = async (req, res, next) => {
   }
 };
 
+const list_order_details = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const filters = req.body || {};
+    const order_details = await customer_product_model.list_order_details(
+      customer_id,
+      filters
+    );
+
+    res.status(constants.responseCodes.success).json({
+      success: order_details.success,
+      data: order_details.data,
+    });
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
+
+const specific_order_details = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const order_id = req.params.order_id;
+    const order_details = await customer_product_model.specific_order_details(
+      customer_id,
+      order_id
+    );
+
+    res.status(constants.responseCodes.success).json({
+      success: order_details.success,
+      data: order_details.data,
+    });
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
 module.exports = {
   add_products_to_cart,
   remove_products_from_cart,
   manage_quantity,
   list_cart,
   place_order,
+  list_order_details,
+  specific_order_details,
 };
