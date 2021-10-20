@@ -14,6 +14,7 @@ const admin_registration = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: create_admin.success,
         data: create_admin.data,
+        message: create_admin.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -30,10 +31,10 @@ const admin_registration = async (req, res, next) => {
 };
 
 const admin_login = async (req, res, next) => {
-  const admin_data = decryptRequestData(req.body.data);
   //console.log('admin',admin_data);
 
   try {
+    const admin_data = decryptRequestData(req.body.data);
     const { isValid, error } = common.schemaValidator(
       admin_data,
       admin_schema.loginSchema
@@ -46,6 +47,7 @@ const admin_login = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: login.success,
         data: login.data,
+        message: login.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -60,7 +62,31 @@ const admin_login = async (req, res, next) => {
     logger.error(err);
   }
 };
+
+const admin_logout = async (req, res, next) => {
+  try {
+    const uuid = req.user.uuid;
+    const logout = await admin_model.admin_logout(uuid);
+    if (logout.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: logout.success,
+        data: logout.data,
+        message: logout.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: logout.success,
+        data: logout.data,
+        error: logout.error,
+        message: logout.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   admin_login,
   admin_registration,
+  admin_logout,
 };

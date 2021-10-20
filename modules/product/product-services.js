@@ -19,6 +19,7 @@ const create_product_type = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: product_creation.success,
         data: product_creation.data,
+        message: product_creation.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -43,6 +44,7 @@ const delete_product_type = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: product_type_deletion.success,
         data: product_type_deletion.data,
+        message: product_type_deletion.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -82,10 +84,11 @@ const product_type_listing = async (req, res, next) => {
       category_name,
       brand_name,
     });
-    if (product_type.success ===true) {
+    if (product_type.success === true) {
       res.status(constants.responseCodes.success).json({
         success: product_type.success,
         data: product_type.data,
+        message: product_type.message,
       });
     }
   } catch (err) {
@@ -99,10 +102,11 @@ const find_single_product_type = async (req, res, next) => {
     const product_type = await product_model.specific_product_type(
       req.params.product_type_id
     );
-    if (product_type.success ===true) {
+    if (product_type.success === true) {
       res.status(constants.responseCodes.success).json({
         success: product_type.success,
         data: product_type.data,
+        message: product_type.message,
       });
     }
   } catch (err) {
@@ -130,6 +134,7 @@ const update_product_type = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: update.success,
         data: update.data,
+        message: update.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -161,6 +166,7 @@ const add_product_specification = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: add_specifications.success,
         data: add_specifications.data,
+        message: add_specifications.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -190,9 +196,11 @@ const product_listing = async (req, res, next) => {
     // }
     const all_products = await product_model.product_listing(data, filters);
     if (all_products.success === true) {
-      res
-        .status(constants.responseCodes.success)
-        .json({ success: all_products.success, data: all_products.data });
+      res.status(constants.responseCodes.success).json({
+        success: all_products.success,
+        data: all_products.data,
+        message: all_products.message,
+      });
     }
   } catch (err) {
     next(err);
@@ -209,6 +217,7 @@ const specific_product_listing = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: specific_product.success,
         data: specific_product.data,
+        message: specific_product.message,
       });
     }
   } catch (err) {
@@ -226,6 +235,7 @@ const delete_product = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: product_deletion.success,
         data: product_deletion.data,
+        message: product_deletion.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -261,6 +271,7 @@ const update_product = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: product_updation.success,
         data: product_updation.data,
+        message: product_updation.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({

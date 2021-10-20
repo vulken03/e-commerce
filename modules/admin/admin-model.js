@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
-const { loggers } = require("winston");
 const config = require("../../configuration/config");
 const { validatePassword } = require("../../utils/encrypt");
 const { logger } = require("../../utils/logger");
@@ -13,6 +12,7 @@ const create_admin = async (admin_data) => {
     return {
       success: true,
       data: null,
+      message: "registered successfully..",
     };
   } else {
     const error_message = "error while creating admin";
@@ -92,7 +92,7 @@ const admin_login = async ({ username, password }) => {
       username,
     },
     attributes: ["admin_id", "username", "password"],
-    raw:true
+    raw: true,
   });
 
   if (users) {
@@ -113,6 +113,7 @@ const admin_login = async ({ username, password }) => {
           return {
             success: true,
             data: jwt,
+            message: "login successfully..",
           };
         } else {
           const error_message = "error while generating jwt";
@@ -124,7 +125,7 @@ const admin_login = async ({ username, password }) => {
           };
         }
       } else {
-        const error_message = new Error("error while creating session");
+        const error_message = "error while creating session";
         return {
           success: false,
           data: null,
@@ -133,7 +134,7 @@ const admin_login = async ({ username, password }) => {
         };
       }
     } else {
-      const error_message = new Error("you entered wrong password");
+      const error_message = "you entered wrong password";
       return {
         success: false,
         data: null,
@@ -142,8 +143,50 @@ const admin_login = async ({ username, password }) => {
       };
     }
   } else {
-    const error_message = new Error("user not found with this username");
+    const error_message = "user not found with this username";
     return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
+const admin_logout = async (uuid) => {
+  const find_session = await _DB.session.findOne({
+    where: {
+      uuid,
+    },
+    attributes: ["uuid", "is_loggedout"],
+  });
+  if (find_session) {
+    const logout = await find_session.update(
+      {
+        is_loggedout: 1,
+      },
+      {
+        fields: ["is_loggedout"],
+      }
+    );
+    if (logout) {
+      return {
+        success: true,
+        data: null,
+        message: "logout successfully..",
+      };
+    } else {
+      return {
+        message: "error while logout..",
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    return {
+      message: "error while finding session...",
       success: false,
       data: null,
       error: new Error(error_message).stack,
@@ -155,4 +198,5 @@ const admin_login = async ({ username, password }) => {
 module.exports = {
   admin_login,
   create_admin,
+  admin_logout,
 };

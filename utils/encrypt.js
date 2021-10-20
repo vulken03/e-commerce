@@ -19,12 +19,11 @@ const validatePassword = (password, passwordHash, salt) => {
 };
 
 let obj = {
-  email: "virajkumarparmar@gmail.com",
-  password: "abc",
+  username:"vdp0",
+  password: "1234",
 };
-const data = JSON.stringify(obj);
-console.log("raw data:", data);
 
+const data = JSON.stringify(obj);
 const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
   modulusLength: 2048,
   publicKeyEncoding: {

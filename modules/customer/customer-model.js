@@ -96,6 +96,8 @@ const signup = async (userData) => {
             return {
               success: true,
               data: null,
+              message:
+                "signup successfully check mail for email verification...",
             };
           }
         } else {
@@ -256,6 +258,7 @@ const login = async ({ email, password }) => {
             return {
               success: true,
               data: jwt,
+              message: "login successfully...",
             };
           } else {
             const error_message = "error while generating jwt";
@@ -267,7 +270,7 @@ const login = async ({ email, password }) => {
             };
           }
         } else {
-          const error_message = new Error("error while creating session");
+          const error_message = "error while creating session";
           return {
             success: false,
             data: null,
@@ -276,7 +279,7 @@ const login = async ({ email, password }) => {
           };
         }
       } else {
-        const error_message = new Error("you entered wrong password");
+        const error_message = "you entered wrong password";
         return {
           success: false,
           data: null,
@@ -285,7 +288,7 @@ const login = async ({ email, password }) => {
         };
       }
     } else {
-      const error_message = new Error("email is not verified");
+      const error_message = "email is not verified";
       return {
         success: false,
         data: null,
@@ -294,7 +297,7 @@ const login = async ({ email, password }) => {
       };
     }
   } else {
-    const error_message = new Error("user not found with this email_id");
+    const error_message = "user not found with this email_id";
     return {
       success: false,
       data: null,
@@ -333,6 +336,7 @@ const update_profile = async (
         return {
           success: true,
           data: null,
+          message: "profile updated successfully...",
         };
       } else {
         const error_message = "error while updating..";
@@ -394,9 +398,10 @@ const update_password = async (
         return {
           success: true,
           data: null,
+          message: "password updated successfully...",
         };
       } else {
-        const error_message = new Error("error while updating..");
+        const error_message = "error while updating..";
         return {
           success: false,
           data: null,
@@ -405,7 +410,7 @@ const update_password = async (
         };
       }
     } else {
-      const error_message = new Error("your old_password is wrong");
+      const error_message = "your old_password is wrong";
       return {
         success: false,
         data: null,
@@ -494,6 +499,7 @@ const sendPasswordResetMail = async (data) => {
         return {
           success: true,
           data: null,
+          message: "check mail for reset password.",
         };
       } else {
         const error_message = "error while generating token...";
@@ -557,6 +563,7 @@ const reset_password = async (customer_id, password) => {
       return {
         success: true,
         data: null,
+        message: "password changed successfully...",
       };
     } else {
       const error_message = "error while reset password..";
@@ -614,6 +621,7 @@ const address_manage = async (customer_id, addressData) => {
       return {
         success: true,
         data: null,
+        message: "new address added successfully...",
       };
     } else {
       const error_message = "error while creating address..";
@@ -644,6 +652,7 @@ const delete_address = async (address_id, customer_id) => {
         return {
           success: true,
           data: null,
+          message: "address deleted successfully...",
         };
       } else {
         const error_message = "error while deleting..";
@@ -690,6 +699,7 @@ const update_address = async (address_id, customer_id, address_data) => {
         return {
           success: true,
           data: null,
+          message: "address updated successfully...",
         };
       } else {
         const error_message = "error while updating..";
@@ -720,6 +730,48 @@ const update_address = async (address_id, customer_id, address_data) => {
   }
 };
 
+const customer_logout = async (uuid) => {
+  const find_session = await _DB.session.findOne({
+    where: {
+      uuid,
+    },
+    attributes: ["uuid", "is_loggedout"],
+  });
+  if (find_session) {
+    const logout = await find_session.update(
+      {
+        is_loggedout: 1,
+      },
+      {
+        fields: ["is_loggedout"],
+      }
+    );
+    if (logout) {
+      return {
+        success: true,
+        data: null,
+        message: "logout successfully..",
+      };
+    } else {
+      return {
+        message: "error while logout..",
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    return {
+      message: "error while finding session...",
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
 module.exports = {
   signup,
   verify_email,
@@ -731,4 +783,5 @@ module.exports = {
   address_manage,
   delete_address,
   update_address,
+  customer_logout,
 };

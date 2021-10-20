@@ -2,6 +2,7 @@ const sequelize = require("sequelize");
 const { Op } = require("sequelize");
 const helper = require("../../utils/helper");
 const { decryptRequestData } = require("../../utils/encrypt");
+const { logger } = require("../../utils/logger");
 const create_product_type = async (productData) => {
   const transaction = await _DB.sequelize.transaction();
   try {
@@ -49,6 +50,7 @@ const create_product_type = async (productData) => {
         return {
           success: true,
           data: create_product_type,
+          message: "product_type,category and brand created successfully...",
         };
       } else {
         await transaction.rollback();
@@ -222,6 +224,7 @@ const delete_product_type = async (product_type_id) => {
       return {
         success: true,
         data: null,
+        message: "product_type deleted successfully...",
       };
     } else {
       const error_message = "error while deleting...";
@@ -331,6 +334,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
   return {
     success: true,
     data: find_product_types,
+    message: "all product_types",
   };
 };
 
@@ -422,6 +426,7 @@ const specific_product_type = async (product_type_id) => {
   return {
     success: true,
     data: find_product_type,
+    message: "specific product_type",
   };
 };
 
@@ -463,6 +468,7 @@ const update_product_type = async (product_type_id, product_type_data) => {
           return {
             success: true,
             data: null,
+            message: "product_type updated successfully...",
           };
         } else {
           await transaction.rollback();
@@ -509,7 +515,7 @@ const update_product_type = async (product_type_id, product_type_data) => {
 const update_category = async ({
   find_product_type,
   product_category_list,
-  transcation,
+  transaction,
 }) => {
   try {
     const find_type_category = await _DB.type_category.findAll({
@@ -523,7 +529,7 @@ const update_category = async ({
         where: {
           product_type_id: find_product_type.product_type_id,
         },
-        transcation,
+        transaction,
       });
       //if (type_category_delete) {
       const category_list = [];
@@ -545,23 +551,17 @@ const update_category = async ({
               category_id: find_category.category_id,
               product_type_id: find_product_type.product_type_id,
             },
-            { transcation, fields: ["category_id", "product_type_id"] }
+            { transaction, fields: ["category_id", "product_type_id"] }
           );
         }
       }
       const create_category = await _DB.product_category.bulkCreate(
         category_list,
         {
-          transcation,
+          transaction,
           fields: ["category_name"],
         }
       );
-      // TODO: if length is 0 then you should return error
-
-      /*->here, If category is electronics then electronics is already created in category table
-         that's why i use >=0 if electronics is created then it needs to add entry in
-          just type_category table
-      */
       if (create_category.length >= 0) {
         const type_category_list = [];
         for (let b of create_category) {
@@ -572,7 +572,7 @@ const update_category = async ({
         }
         const create_type_category = await _DB.type_category.bulkCreate(
           type_category_list,
-          { transcation, fields: ["product_type_id", "category_id"] }
+          { transaction, fields: ["product_type_id", "category_id"] }
         );
         if (create_type_category.length >= 0) {
           return {
@@ -623,7 +623,7 @@ const update_category = async ({
 const update_brand = async ({
   find_product_type,
   product_brand_list,
-  transcation,
+  transaction,
 }) => {
   try {
     const find_type_brand = await _DB.type_brand.findAll({
@@ -637,7 +637,7 @@ const update_brand = async ({
         where: {
           product_type_id: find_product_type.product_type_id,
         },
-        transcation,
+        transaction,
       });
       //if (type_brand_delete) {
       const brand_list = [];
@@ -659,12 +659,12 @@ const update_brand = async ({
               brand_id: find_brand.brand_id,
               product_type_id: find_product_type.product_type_id,
             },
-            { transcation, fields: ["brand_id", "product_type_id"] }
+            { transaction, fields: ["brand_id", "product_type_id"] }
           );
         }
       }
       const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
-        transcation,
+        transaction,
         fields: ["brand_name"],
       });
       if (create_brand.length >= 0) {
@@ -677,7 +677,7 @@ const update_brand = async ({
         }
         const create_type_brand = await _DB.type_brand.bulkCreate(
           type_brand_list,
-          { transcation, fields: ["product_type_id", "brand_id"] }
+          { transaction, fields: ["product_type_id", "brand_id"] }
         );
         if (create_type_brand.length >= 0) {
           return {
@@ -847,6 +847,7 @@ GROUP BY p.product_id
     return {
       success: true,
       data: result,
+      message: "all products...",
     };
   } else {
     const all_products = await _DB.product.findAll({
@@ -862,6 +863,7 @@ GROUP BY p.product_id
     return {
       success: true,
       data: all_products,
+      message: "all products which you are filtered...",
     };
   }
 };
@@ -908,6 +910,7 @@ const specific_product_listing = async (product_id) => {
   return {
     success: true,
     data: specific_product,
+    message: "product which is specified by you..",
   };
 };
 
@@ -924,6 +927,7 @@ const delete_product = async (product_id) => {
       return {
         success: true,
         data: null,
+        message: "product deleted successfully..",
       };
     } else {
       const error_message = "error while deleting";
@@ -1025,6 +1029,7 @@ const create_product_data = async (specification_data) => {
             return {
               success: true,
               data: null,
+              message: "product_created successfully...",
             };
           } else {
             await transaction.rollback();
@@ -1140,6 +1145,7 @@ const update_product = async (product_id, product_data) => {
             return {
               success: true,
               data: null,
+              message: "product details updated successfully..",
             };
           } else {
             const error_message = "error while creating product specifications";

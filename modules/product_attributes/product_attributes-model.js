@@ -38,6 +38,7 @@ const create_product_type_attribute = async ({
           return {
             success: true,
             data: create_attribute_values,
+            message: "product_type_attributes added successfully...",
           };
         } else {
           await transaction.rollback();
@@ -126,6 +127,7 @@ const update_product_type_attribute = async (
           return {
             success: true,
             data: null,
+            message: "product_type_attributes updated successfully..",
           };
         } else {
           await transaction.rollback();

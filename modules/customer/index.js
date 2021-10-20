@@ -16,4 +16,5 @@ module.exports = (app) => {
   app.post("/manage_address", customer_service.address_manage);
   app.delete("/delete_address/:address_id", customer_service.delete_address);
   app.put("/update_address/:address_id", customer_service.update_address);
+  app.post("/customer_logout", customer_service.customer_logout);
 };

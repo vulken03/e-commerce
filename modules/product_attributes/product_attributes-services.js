@@ -21,6 +21,7 @@ const add_product_type_attributes = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: add_attributes.success,
         data: add_attributes.data,
+        message: add_attributes.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -57,6 +58,7 @@ const update_product_type_attributes = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: update_attributes.success,
         data: update_attributes.data,
+        message: update_attributes.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({

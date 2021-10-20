@@ -23,6 +23,7 @@ const add_products_to_cart = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: add_to_cart.success,
         data: add_to_cart.data,
+        message: add_to_cart.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -51,6 +52,7 @@ const remove_products_from_cart = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: remove_from_cart.success,
         data: remove_from_cart.data,
+        message: remove_from_cart.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -81,6 +83,7 @@ const manage_quantity = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: change_quantity.success,
         data: change_quantity.data,
+        message: change_quantity.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -106,7 +109,11 @@ const list_cart = async (req, res, next) => {
     );
     res
       .status(constants.responseCodes.success)
-      .json({ success: cart_listing.success, data: cart_listing.data });
+      .json({
+        success: cart_listing.success,
+        data: cart_listing.data,
+        message: cart_listing.message,
+      });
   } catch (err) {
     next(err);
     logger.error(err);
@@ -130,9 +137,11 @@ const place_order = async (req, res, next) => {
       address_id
     );
     if (order.success === true) {
-      res
-        .status(constants.responseCodes.success)
-        .json({ success: order.success, data: order.data });
+      res.status(constants.responseCodes.success).json({
+        success: order.success,
+        data: order.data,
+        message: order.message,
+      });
     } else {
       res.status(constants.responseCodes.badrequest).json({
         success: order.success,
@@ -159,6 +168,7 @@ const list_order_details = async (req, res, next) => {
     res.status(constants.responseCodes.success).json({
       success: order_details.success,
       data: order_details.data,
+      message: order_details.message,
     });
   } catch (err) {
     next(err);
@@ -178,6 +188,7 @@ const specific_order_details = async (req, res, next) => {
     res.status(constants.responseCodes.success).json({
       success: order_details.success,
       data: order_details.data,
+      message: order_details.message,
     });
   } catch (err) {
     next(err);

@@ -35,6 +35,7 @@ const add_products_to_cart = async (customer_id, cart_data) => {
           return {
             success: true,
             data: null,
+            message: "product added to the cart...",
           };
         } else {
           const error_message = "error while adding products to cart";
@@ -98,6 +99,7 @@ const remove_from_cart = async (customer_id, cart_id) => {
       return {
         success: true,
         data: null,
+        message: "product is removed from cart..",
       };
     } else {
       const error_message = "you can't delete product from given cart_id";
@@ -168,6 +170,7 @@ const manage_quantity = async (cart_id, customer_id, quantity_data) => {
                   return {
                     success: true,
                     data: null,
+                    message: "given product quantity is changed..",
                   };
                 } else {
                   const error_message =
@@ -308,6 +311,7 @@ const list_cart = async (customer_id, filters) => {
         total_product_count,
         total_price,
       },
+      message: "all cart items...",
     };
   } else {
     return {
@@ -353,6 +357,7 @@ const place_order = async (customer_id, address_id) => {
       return {
         success: true,
         data: null,
+        message: "order placed successfully..",
       };
     } else {
       const error_message = "error while creating order..";
@@ -459,6 +464,7 @@ const list_order_details = async (
   return {
     success: true,
     data: order_details,
+    message: "all order details...",
   };
 };
 
@@ -481,6 +487,7 @@ const specific_order_details = async (customer_id, order_id) => {
   return {
     success: true,
     data: find_specific_order,
+    message: "specific order details...",
   };
 };
 

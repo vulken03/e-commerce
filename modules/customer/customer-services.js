@@ -20,6 +20,7 @@ const signup = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: customer_signup.success,
         data: customer_signup.data,
+        message: customer_signup.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -52,6 +53,7 @@ const login = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: login.success,
         data: login.data,
+        message: login.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -89,6 +91,7 @@ const update_profile = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: update_profile_data.success,
         data: update_profile_data.data,
+        message: update_profile_data.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -126,6 +129,7 @@ const update_password = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: update_password_data.success,
         data: update_password_data.data,
+        message: update_password_data.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -156,6 +160,7 @@ const passwordResetMail = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: resetPassword.success,
         data: resetPassword.data,
+        message: resetPassword.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -189,6 +194,7 @@ const password_reset = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: resetPassword.success,
         data: resetPassword.data,
+        message: resetPassword.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -218,6 +224,7 @@ const verify_email = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: email_verification.success,
         data: email_verification.data,
+        message: email_verification.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -251,6 +258,7 @@ const address_manage = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: manage_address.success,
         data: manage_address.data,
+        message: manage_address.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -277,6 +285,7 @@ const delete_address = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: address_delete.success,
         data: address_delete.data,
+        message: address_delete.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -312,6 +321,7 @@ const update_address = async (req, res, next) => {
       res.status(constants.responseCodes.success).json({
         success: address_update.success,
         data: address_update.data,
+        message: address_update.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
@@ -319,6 +329,29 @@ const update_address = async (req, res, next) => {
         data: address_update.data,
         error: address_update.error,
         message: address_update.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+const customer_logout = async (req, res, next) => {
+  try {
+    const uuid = req.user.uuid;
+    const logout = await customer_model.customer_logout(uuid);
+    if (logout.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: logout.success,
+        data: logout.data,
+        message: logout.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: logout.success,
+        data: logout.data,
+        error: logout.error,
+        message: logout.message,
       });
     }
   } catch (err) {
@@ -336,4 +369,5 @@ module.exports = {
   address_manage,
   delete_address,
   update_address,
+  customer_logout,
 };
