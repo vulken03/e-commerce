@@ -7,20 +7,20 @@ const { logger } = require("../utils/logger");
 const verifyJWT = async (req) => {
   try {
     let userData = null;
+    const token = req.headers["authorization"];
     if (req.url === "/resetpassword") {
-      userData = await verifyPasswordResetJwt(req); // TODO: verifyPasswordResetJwt is not needed, jwt verify logic should remain same only secret key needs to be changed so dynamically change the secret key!
-      return userData;
+      userData = jwt.verify(token, config.get("jwt.reset_password_key"), {
+        algorithms: ["HS384"],
+      });
     } else {
-      let token = req.headers["authorization"];
-
       userData = jwt.verify(token, config.get("jwt.key"), {
         algorithms: ["HS384"],
       });
-      if (userData) {
-        return userData;
-      } else {
-        return false;
-      }
+    }
+    if (userData) {
+      return userData;
+    } else {
+      return false;
     }
   } catch (err) {
     throw err;
@@ -125,27 +125,6 @@ let authenticateRequest = async (req, res, next) => {
   }
 };
 
-let verifyPasswordResetJwt = async (req) => { // TODO: remove this method
-  const token = jwt.decode(req.headers.authorization);
-  const userDetails = await _DB.customer.findOne({
-    where: {
-      customer_id: token.userId,
-    },
-    raw: true,
-  });
-  if (userDetails) {
-    const userData = jwt.verify(
-      req.headers.authorization,
-      "onlinewebtutorkey",
-      {
-        algorithms: ["HS384"],
-      }
-    );
-    return userData;
-  } else {
-    return false;
-  }
-};
 module.exports = {
   authenticateRequest,
 };

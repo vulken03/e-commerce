@@ -1,5 +1,3 @@
-//import crypto from "crypto-random-string";
-//const crypto=require('crypto-random-string')
 const { sendEmail } = require("../../utils/common");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
@@ -438,7 +436,7 @@ const generatePasswordResetJwt = async (user, session) => {
       email,
       isAdmin,
     },
-    "onlinewebtutorkey", // TODO: read this from config
+    config.get("jwt.reset_password_key"), // TODO: read this from config
     { expiresIn: "1h", algorithm: "HS384" }
   );
   if (token) {
@@ -544,6 +542,18 @@ const reset_password = async (customer_id, password) => {
     );
     if (password_reset) {
       // TODO: after password reset kill the session by turning is_loggedout to 1
+      await _DB.session.update(
+        {
+          is_loggedout: 1,
+        },
+        {
+          where: {
+            user_id: customer_id,
+          },
+          fields: ["is_loggedout"],
+        }
+      );
+
       return {
         success: true,
         data: null,

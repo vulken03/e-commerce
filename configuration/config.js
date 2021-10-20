@@ -49,6 +49,11 @@ const config = convict({
       format: String,
       default: "encrypt@098",
     },
+    reset_password_key: {
+      doc: "JWT key",
+      format: String,
+      default: "encrypt@200",
+    },
   },
   logger: {
     filename: {
@@ -57,18 +62,17 @@ const config = convict({
       default: "request.log",
     },
   },
-  mailer: { // TODO: only read pass prop of mailer from .env file
+  mailer: {
+    // TODO: only read pass prop of mailer from .env file
     from: {
-      doc: "checkforapis@gmail.com",
+      doc: "From email address",
       format: String,
-      default: "",
-      env: "user",
+      default: "checkforapis@gmail.com ",
     },
     user: {
-      doc: 'checkforapis@gmail.com',
+      doc: "email address",
       format: String,
-      default: '',
-      env: "user",
+      default: "checkforapis@gmail.com",
     },
     pass: {
       doc: "Email Password",
