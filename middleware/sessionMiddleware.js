@@ -8,7 +8,7 @@ const verifyJWT = async (req) => {
   try {
     let userData = null;
     if (req.url === "/resetpassword") {
-      userData = await verifyPasswordResetJwt(req);
+      userData = await verifyPasswordResetJwt(req); // TODO: verifyPasswordResetJwt is not needed, jwt verify logic should remain same only secret key needs to be changed so dynamically change the secret key!
       return userData;
     } else {
       let token = req.headers["authorization"];
@@ -125,7 +125,7 @@ let authenticateRequest = async (req, res, next) => {
   }
 };
 
-let verifyPasswordResetJwt = async (req) => {
+let verifyPasswordResetJwt = async (req) => { // TODO: remove this method
   const token = jwt.decode(req.headers.authorization);
   const userDetails = await _DB.customer.findOne({
     where: {

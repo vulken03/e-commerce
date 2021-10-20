@@ -57,7 +57,7 @@ const config = convict({
       default: "request.log",
     },
   },
-  mailer: {
+  mailer: { // TODO: only read pass prop of mailer from .env file
     from: {
       doc: "checkforapis@gmail.com",
       format: String,

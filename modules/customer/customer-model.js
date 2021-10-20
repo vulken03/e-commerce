@@ -438,7 +438,7 @@ const generatePasswordResetJwt = async (user, session) => {
       email,
       isAdmin,
     },
-    "onlinewebtutorkey",
+    "onlinewebtutorkey", // TODO: read this from config
     { expiresIn: "1h", algorithm: "HS384" }
   );
   if (token) {
@@ -543,6 +543,7 @@ const reset_password = async (customer_id, password) => {
       }
     );
     if (password_reset) {
+      // TODO: after password reset kill the session by turning is_loggedout to 1
       return {
         success: true,
         data: null,
