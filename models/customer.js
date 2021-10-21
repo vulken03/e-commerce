@@ -64,7 +64,7 @@ module.exports = (sequelize, Sequelize) => {
     customer.hasMany(models.cart, {
       foreignKey: "customer_id",
     });
-    customer.hasMany(models.order, {
+    customer.hasMany(models.order_detail, {
       foreignKey: "customer_id",
     });
   };

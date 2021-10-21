@@ -40,7 +40,7 @@ module.exports = (sequelize, Sequelize) => {
     customer_address.belongsTo(models.customer, {
       foreignKey: "customer_id",
     });
-    customer_address.hasMany(models.order, {
+    customer_address.hasMany(models.order_detail, {
       foreignKey: "address_id",
     });
   };

@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize) => {
-  const order = sequelize.define("order", {
-    order_id: {
+  const order_detail = sequelize.define("order_detail", {
+    order_detail_id: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -11,14 +11,6 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
     },
     address_id: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
-    quantity: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
-    price: {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
@@ -34,14 +26,25 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
+    order_status: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    purchase_date: {
+      type: Sequelize.DATE,
+      allowNull: false,
+    },
   });
-  order.associate = (models) => {
-    order.belongsTo(models.customer_address, {
+  order_detail.associate = (models) => {
+    order_detail.belongsTo(models.customer_address, {
       foreignKey: "address_id",
     }),
-      order.belongsTo(models.customer, {
+      order_detail.belongsTo(models.customer, {
         foreignKey: "customer_id",
       });
+    order_detail.hasMany(models.order_item, {
+      foreignKey: "order_detail_id",
+    });
   };
-  return order;
+  return order_detail;
 };

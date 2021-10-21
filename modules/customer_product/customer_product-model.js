@@ -314,49 +314,89 @@ const list_cart = async (customer_id, filters) => {
       },
       message: "all cart items...",
     };
+  } else {
+    return {
+      success: true,
+      data: {},
+    };
   }
 };
 const place_order = async (customer_id, address_id) => {
   const cart_data = find_cart_data(customer_id);
   const address_data = find_address(customer_id, address_id);
-  const [cart, address] = await Promise.all([cart_data, address_data]);
-  if (cart && address) {
-    const { total_product_count, total_price } = cart;
-    const confirm_order = await _DB.order.create(
+  const amount_data = find_total(customer_id);
+  const [cart, address, find_total_data] = await Promise.all([
+    cart_data,
+    address_data,
+    amount_data,
+  ]);
+  if (cart.length !== 0 && address) {
+    const { total_price } = find_total_data;
+    const transaction = await _DB.sequelize.transaction();
+    const add_order_details = await _DB.order_detail.create(
       {
-        customer_id: cart.customer_id,
+        customer_id: address.customer_id,
         address_id: address.address_id,
-        quantity: total_product_count,
-        price: total_price,
         gst: (total_price * 1.5) / 100,
         shipping_fee: 50,
         subtotal: total_price * 1.015 + 50,
+        order_status: "pending",
+        purchase_date: new Date(),
       },
       {
+        transaction,
         fields: [
+          "order_detail_id",
           "customer_id",
           "address_id",
-          "quantity",
-          "price",
           "gst",
           "shipping_fee",
           "subtotal",
+          "order_status",
+          "purchase_date",
         ],
       }
     );
-    if (confirm_order) {
-      await _DB.cart.destroy({
-        where: {
-          customer_id,
-        },
+    if (add_order_details) {
+      const product_details = [];
+      for (let i of cart) {
+        product_details.push({
+          quantity: i.quantity,
+          price: i.price,
+          product_id: i.product_id,
+          order_detail_id: add_order_details.order_detail_id,
+        });
+      }
+
+      const confirm_order = await _DB.order_item.bulkCreate(product_details, {
+        fields: ["quantity", "price", "product_id", "order_detail_id"],
+        transaction,
       });
-      return {
-        success: true,
-        data: null,
-        message: "order placed successfully..",
-      };
+      if (confirm_order.length !== 0) {
+        await _DB.cart.destroy({
+          where: {
+            customer_id,
+          },
+        });
+        await transaction.commit();
+        return {
+          success: true,
+          data: null,
+          message: "order placed successfully..",
+        };
+      } else {
+        await transaction.rollback();
+        const error_message = "error while creating order..";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
+      }
     } else {
-      const error_message = "error while creating order..";
+      await transaction.rollback();
+      const error_message = "error while creating order...";
       return {
         success: false,
         data: null,
@@ -375,22 +415,46 @@ const place_order = async (customer_id, address_id) => {
   }
 };
 
-const find_cart_data = (customer_id) => {
+const find_total = (customer_id) => {
   const find_data = _DB.cart.findOne({
     where: {
       customer_id,
     },
     attributes: [
-      [sequelize.literal(`(SUM(cart.quantity))`), "total_product_count"],
-
-      [sequelize.literal(`(SUM(product.price*cart.quantity))`), "total_price"],
       "customer_id",
+      [sequelize.literal(`(SUM(product.price*cart.quantity))`), "total_price"],
     ],
     include: {
       model: _DB.product,
       attributes: [],
     },
     group: "customer_id",
+    raw: true,
+  });
+  if (find_data) {
+    return find_data;
+  } else {
+    return false;
+  }
+};
+
+const find_cart_data = (customer_id) => {
+  const find_data = _DB.cart.findAll({
+    where: {
+      customer_id,
+    },
+    attributes: [
+      "customer_id",
+      "product_id",
+      "quantity",
+      "cart_id",
+      "product.price",
+    ],
+    include: {
+      model: _DB.product,
+      attributes: [],
+    },
+    //group: "customer_id",
     raw: true,
   });
   if (find_data) {
@@ -439,7 +503,7 @@ const list_order_details = async (
     filter.offset = Number((pagination.page - 1) * pagination.limit);
     filter.limit = Number(pagination.limit);
   }
-  const order_details = await _DB.order.findAll({
+  const order_details = await _DB.order_detail.findAll({
     where: {
       customer_id,
     },
@@ -447,15 +511,28 @@ const list_order_details = async (
     limit: filter.limit,
     order: filter.order,
     attributes: [
-      "order_id",
-      "price",
+      "order_detail_id",
+      "order_items.quantity",
+      "order_items.price",
       "gst",
-      "quantity",
       "shipping_fee",
       "subtotal",
+      "order_status",
+      "purchase_date",
+    ],
+    include: [
+      {
+        model: _DB.order_item,
+        attributes: [],
+        include: {
+          model: _DB.product,
+          attributes: ["product_name"],
+        },
+      },
     ],
     raw: true,
   });
+  console.log(order_details);
   return {
     success: true,
     data: order_details,
@@ -463,28 +540,28 @@ const list_order_details = async (
   };
 };
 
-const specific_order_details = async (customer_id, order_id) => {
-  const find_specific_order = await _DB.order.findOne({
-    where: {
-      order_id,
-      customer_id,
-    },
-    attributes: [
-      "order_id",
-      "price",
-      "gst",
-      "quantity",
-      "shipping_fee",
-      "subtotal",
-    ],
-    raw: true,
-  });
-  return {
-    success: true,
-    data: find_specific_order,
-    message: "specific order details...",
-  };
-};
+// const specific_order_details = async (customer_id, order_id) => {
+//   const find_specific_order = await _DB.order.findOne({
+//     where: {
+//       order_id,
+//       customer_id,
+//     },
+//     attributes: [
+//       "order_id",
+//       "price",
+//       "gst",
+//       "quantity",
+//       "shipping_fee",
+//       "subtotal",
+//     ],
+//     raw: true,
+//   });
+//   return {
+//     success: true,
+//     data: find_specific_order,
+//     message: "specific order details...",
+//   };
+// };
 
 module.exports = {
   add_products_to_cart,
@@ -493,5 +570,5 @@ module.exports = {
   list_cart,
   place_order,
   list_order_details,
-  specific_order_details,
+  // specific_order_details,
 };

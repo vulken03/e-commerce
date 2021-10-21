@@ -12,8 +12,8 @@ module.exports = (app) => {
   app.all("/list_cart", customer_product_service.list_cart);
   app.post("/place_order", customer_product_service.place_order);
   app.all("/list_order_details", customer_product_service.list_order_details);
-  app.get(
-    "/specific_order_details/:order_id",
-    customer_product_service.specific_order_details
-  );
+  // app.get(
+  //   "/specific_order_details/:order_id",
+  //   customer_product_service.specific_order_details
+  // );
 };

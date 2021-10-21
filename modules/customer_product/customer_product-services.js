@@ -174,25 +174,25 @@ const list_order_details = async (req, res, next) => {
   }
 };
 
-const specific_order_details = async (req, res, next) => {
-  try {
-    const customer_id = req.user.customer_id;
-    const order_id = req.params.order_id;
-    const order_details = await customer_product_model.specific_order_details(
-      customer_id,
-      order_id
-    );
+// const specific_order_details = async (req, res, next) => {
+//   try {
+//     const customer_id = req.user.customer_id;
+//     const order_id = req.params.order_id;
+//     const order_details = await customer_product_model.specific_order_details(
+//       customer_id,
+//       order_id
+//     );
 
-    res.status(constants.responseCodes.success).json({
-      success: order_details.success,
-      data: order_details.data,
-      message: order_details.message,
-    });
-  } catch (err) {
-    next(err);
-    logger.error(err);
-  }
-};
+//     res.status(constants.responseCodes.success).json({
+//       success: order_details.success,
+//       data: order_details.data,
+//       message: order_details.message,
+//     });
+//   } catch (err) {
+//     next(err);
+//     logger.error(err);
+//   }
+// };
 module.exports = {
   add_products_to_cart,
   remove_products_from_cart,
@@ -200,5 +200,5 @@ module.exports = {
   list_cart,
   place_order,
   list_order_details,
-  specific_order_details,
+  // specific_order_details,
 };
