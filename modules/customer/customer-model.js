@@ -122,7 +122,7 @@ const signup = async (userData) => {
       }
     }
   } catch (err) {
-    await transcation.rollback();
+    await transaction.rollback();
     logger.error(err);
     return {
       success: false,

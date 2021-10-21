@@ -86,12 +86,12 @@ const generateJwtToken = async (users, uuid, isAdmin) => {
   }
 };
 
-const admin_login = async ({ username, password }) => {
+const admin_login = async ({ email, password }) => {
   let users = await _DB.admin.findOne({
     where: {
-      username,
+      email,
     },
-    attributes: ["admin_id", "username", "password"],
+    attributes: ["admin_id", "email","username","password"],
     raw: true,
   });
 

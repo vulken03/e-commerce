@@ -13,13 +13,13 @@ module.exports = (app) => {
   );
   app.get(
     "/product_type_listing",
-    allowAdminOnly,
+    // allowAdminOnly,
     product_service.product_type_listing
   );
 
   app.get(
     "/specific_product_type/:product_type_id",
-    allowAdminOnly,
+    // allowAdminOnly,
     product_service.find_single_product_type
   );
 
@@ -37,13 +37,13 @@ module.exports = (app) => {
 
   app.all(
     "/all_product_listing",
-    allowAdminOnly,
+    // allowAdminOnly,
     product_service.product_listing
   );
 
   app.get(
     "/specific_product_listing/:product_id",
-    allowAdminOnly,
+    // allowAdminOnly,
     product_service.specific_product_listing
   );
 

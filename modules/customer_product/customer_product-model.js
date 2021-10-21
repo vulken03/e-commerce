@@ -134,6 +134,7 @@ const manage_quantity = async (cart_id, customer_id, quantity_data) => {
         product_id: find_cart_data.product_id,
       },
       attributes: ["product_id", "quantity", "price"],
+      raw: true,
     });
     if (find_product_data) {
       if (find_cart_data.customer_id === customer_id) {
@@ -313,11 +314,6 @@ const list_cart = async (customer_id, filters) => {
       },
       message: "all cart items...",
     };
-  } else {
-    return {
-      success: true,
-      data: {},
-    };
   }
 };
 const place_order = async (customer_id, address_id) => {
@@ -460,7 +456,6 @@ const list_order_details = async (
     ],
     raw: true,
   });
-
   return {
     success: true,
     data: order_details,

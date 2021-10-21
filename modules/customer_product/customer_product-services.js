@@ -107,13 +107,12 @@ const list_cart = async (req, res, next) => {
       customer_id,
       filters
     );
-    res
-      .status(constants.responseCodes.success)
-      .json({
-        success: cart_listing.success,
-        data: cart_listing.data,
-        message: cart_listing.message,
-      });
+
+    res.status(constants.responseCodes.success).json({
+      success: cart_listing.success,
+      data: cart_listing.data,
+      message: cart_listing.message,
+    });
   } catch (err) {
     next(err);
     logger.error(err);
@@ -164,7 +163,6 @@ const list_order_details = async (req, res, next) => {
       customer_id,
       filters
     );
-
     res.status(constants.responseCodes.success).json({
       success: order_details.success,
       data: order_details.data,

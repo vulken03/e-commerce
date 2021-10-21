@@ -383,7 +383,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
 // }
 
 const specific_product_type = async (product_type_id) => {
-  const find_product_type = await _DB.product_type.findAll({
+  const find_product_type = await _DB.product_type.findOne({
     where: {
       product_type_id,
     },
@@ -844,11 +844,21 @@ GROUP BY p.product_id
         type: _DB.Sequelize.QueryTypes["SELECT"],
       }
     );
+    //if (result.length !== 0) {
     return {
       success: true,
       data: result,
       message: "all products...",
     };
+    // } else {
+    //   const error_message = "error while getting product data..";
+    //   return {
+    //     success: false,
+    //     data: null,
+    //     error: new Error(error_message).stack,
+    //     message: error_message,
+    //   };
+    // }
   } else {
     const all_products = await _DB.product.findAll({
       where: filter.where,
@@ -860,11 +870,21 @@ GROUP BY p.product_id
       group: "product.product_id",
     });
     // C-TODO: if block is not needed, if there are no records it will pass empty array [] in data..do the same at other places..
+    // if (all_products.length !== 0) {
     return {
       success: true,
       data: all_products,
       message: "all products which you are filtered...",
     };
+    // } else {
+    //   const error_message = "error while getting product data..";
+    //   return {
+    //     success: false,
+    //     data: null,
+    //     error: new Error(error_message).stack,
+    //     message: error_message,
+    //   };
+    // }
   }
 };
 

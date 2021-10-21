@@ -4,11 +4,10 @@ const moment = require("moment");
 const config = require("../configuration/config");
 const { logger } = require("../utils/logger");
 
-const verifyJWT = async (req) => {
+const verifyJWT = async (token, url) => {
   try {
     let userData = null;
-    const token = req.headers["authorization"];
-    if (req.url === "/resetpassword") {
+    if (url === "/resetpassword") {
       userData = jwt.verify(token, config.get("jwt.reset_password_key"), {
         algorithms: ["HS384"],
       });
@@ -23,17 +22,19 @@ const verifyJWT = async (req) => {
       return false;
     }
   } catch (err) {
-    throw err;
+    next(err);
   }
 };
 
 let isValidSession = async (uuid) => {
   try {
     let isValid = false;
-    let userSession = await _DB.session.findOne({
+    const userSession = await _DB.session.findOne({
       where: {
         uuid,
       },
+      attributes: ["time_to_leave", "is_loggedout", "uuid"],
+      raw: true,
     });
 
     if (userSession) {
@@ -56,7 +57,7 @@ let isValidSession = async (uuid) => {
 
     return isValid;
   } catch (err) {
-    throw err;
+    next(err);
   }
 };
 
@@ -69,6 +70,7 @@ let isValidUser = async ({ isAdmin, userId }) => {
         where: {
           admin_id: userId,
         },
+        attributes: ["admin_id", "username", "email"],
         raw: true,
       });
     } else {
@@ -76,6 +78,7 @@ let isValidUser = async ({ isAdmin, userId }) => {
         where: {
           customer_id: userId,
         },
+        attributes: ["customer_id", "username", "email"],
         raw: true,
       });
     }
@@ -87,7 +90,7 @@ let isValidUser = async ({ isAdmin, userId }) => {
       user: fetchedUser,
     };
   } catch (err) {
-    throw err;
+    next(err);
   }
 };
 
@@ -98,15 +101,15 @@ let authenticateRequest = async (req, res, next) => {
 
   try {
     if (req.headers.authorization) {
-      let userData = await verifyJWT(req);
+      const userData = await verifyJWT(req.headers.authorization, req.url);
 
-      let isSessionValid = await isValidSession(userData.uuid);
+      const isSessionValid = await isValidSession(userData.uuid);
       if (!isSessionValid) {
         const error = new Error(constants.errors.isExpired);
         return next(error);
       }
 
-      let { isUserValid, user } = await isValidUser(userData);
+      const { isUserValid, user } = await isValidUser(userData);
       if (isUserValid) {
         console.log(user);
         req.user = user;

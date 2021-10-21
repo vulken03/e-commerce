@@ -84,13 +84,11 @@ const product_type_listing = async (req, res, next) => {
       category_name,
       brand_name,
     });
-    if (product_type.success === true) {
-      res.status(constants.responseCodes.success).json({
-        success: product_type.success,
-        data: product_type.data,
-        message: product_type.message,
-      });
-    }
+    res.status(constants.responseCodes.success).json({
+      success: product_type.success,
+      data: product_type.data,
+      message: product_type.message,
+    });
   } catch (err) {
     next(err);
     logger.error(err);
@@ -102,13 +100,11 @@ const find_single_product_type = async (req, res, next) => {
     const product_type = await product_model.specific_product_type(
       req.params.product_type_id
     );
-    if (product_type.success === true) {
-      res.status(constants.responseCodes.success).json({
-        success: product_type.success,
-        data: product_type.data,
-        message: product_type.message,
-      });
-    }
+    res.status(constants.responseCodes.success).json({
+      success: product_type.success,
+      data: product_type.data,
+      message: product_type.message,
+    });
   } catch (err) {
     next(err);
     logger.error(err);
@@ -195,13 +191,11 @@ const product_listing = async (req, res, next) => {
     //   return next(error);
     // }
     const all_products = await product_model.product_listing(data, filters);
-    if (all_products.success === true) {
-      res.status(constants.responseCodes.success).json({
-        success: all_products.success,
-        data: all_products.data,
-        message: all_products.message,
-      });
-    }
+    res.status(constants.responseCodes.success).json({
+      success: all_products.success,
+      data: all_products.data,
+      message: all_products.message,
+    });
   } catch (err) {
     next(err);
     logger.error(err);
@@ -213,13 +207,11 @@ const specific_product_listing = async (req, res, next) => {
     const specific_product = await product_model.specific_product_listing(
       req.params.product_id
     );
-    if (specific_product.success === true) {
-      res.status(constants.responseCodes.success).json({
-        success: specific_product.success,
-        data: specific_product.data,
-        message: specific_product.message,
-      });
-    }
+    res.status(constants.responseCodes.success).json({
+      success: specific_product.success,
+      data: specific_product.data,
+      message: specific_product.message,
+    });
   } catch (err) {
     next(err);
     logger.error(err);
