@@ -174,25 +174,53 @@ const list_order_details = async (req, res, next) => {
   }
 };
 
-// const specific_order_details = async (req, res, next) => {
-//   try {
-//     const customer_id = req.user.customer_id;
-//     const order_id = req.params.order_id;
-//     const order_details = await customer_product_model.specific_order_details(
-//       customer_id,
-//       order_id
-//     );
+const specific_order_details = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const order_detail_id = req.params.order_detail_id;
+    const order_details = await customer_product_model.specific_order_details(
+      customer_id,
+      order_detail_id
+    );
 
-//     res.status(constants.responseCodes.success).json({
-//       success: order_details.success,
-//       data: order_details.data,
-//       message: order_details.message,
-//     });
-//   } catch (err) {
-//     next(err);
-//     logger.error(err);
-//   }
-// };
+    res.status(constants.responseCodes.success).json({
+      success: order_details.success,
+      data: order_details.data,
+      message: order_details.message,
+    });
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
+
+const cancel_order = async (req, res, next) => {
+  try {
+    const order_detail_id = req.params.order_detail_id;
+    const customer_id = req.user.customer_id;
+    const order_cancel = await customer_product_model.cancel_order(
+      order_detail_id,
+      customer_id
+    );
+    if (order_cancel.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: order_cancel.success,
+        data: order_cancel.data,
+        message: order_cancel.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: order_cancel.success,
+        data: order_cancel.data,
+        error: order_cancel.error,
+        message: order_cancel.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
 module.exports = {
   add_products_to_cart,
   remove_products_from_cart,
@@ -200,5 +228,6 @@ module.exports = {
   list_cart,
   place_order,
   list_order_details,
-  // specific_order_details,
+  specific_order_details,
+  cancel_order,
 };

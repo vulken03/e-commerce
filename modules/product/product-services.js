@@ -278,6 +278,42 @@ const update_product = async (req, res, next) => {
     logger.error(err);
   }
 };
+
+const manage_order_status = async (req, res, next) => {
+  try {
+    const order_detail_id = req.params.order_detail_id;
+    const data = req.body;
+    const { isValid, error } = common.schemaValidator(
+      data,
+      product_schema.change_order_status_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const { order_status } = data;
+    const change_order_status = await product_model.manage_order_status(
+      order_detail_id,
+      order_status
+    );
+    if (change_order_status.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: change_order_status.success,
+        data: change_order_status.data,
+        message: change_order_status.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: change_order_status.success,
+        data: change_order_status.data,
+        error: change_order_status.error,
+        message: change_order_status.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
 module.exports = {
   create_product_type,
   delete_product_type,
@@ -289,4 +325,5 @@ module.exports = {
   specific_product_listing,
   delete_product,
   update_product,
+  manage_order_status,
 };

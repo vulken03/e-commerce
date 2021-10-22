@@ -58,4 +58,10 @@ module.exports = (app) => {
     allowAdminOnly,
     product_service.update_product
   );
+
+  app.put(
+    "/manage_order_status/:order_detail_id",
+    allowAdminOnly,
+    product_service.manage_order_status
+  );
 };

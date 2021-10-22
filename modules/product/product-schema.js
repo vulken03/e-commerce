@@ -19,7 +19,11 @@ const productSchema = {
       minItems: 1,
     },
   },
-  required: ["product_type_name", "product_category_list", "product_brand_list"],
+  required: [
+    "product_type_name",
+    "product_category_list",
+    "product_brand_list",
+  ],
 };
 
 const update_product_type_schema = {
@@ -68,7 +72,7 @@ const create_specification_schema = {
       "model_name",
       "product_description",
       "quantity",
-      "price"
+      "price",
     ],
   },
 };
@@ -87,9 +91,20 @@ get_product_schema = {
     required: ["product_type_id"],
   },
 };
+
+const change_order_status_schema = {
+  type: "object",
+  properties: {
+    order_status: {
+      type: "string",
+    },
+  },
+  required: ["order_status"],
+};
 module.exports = {
   productSchema,
   update_product_type_schema,
   create_specification_schema,
   get_product_schema,
+  change_order_status_schema,
 };

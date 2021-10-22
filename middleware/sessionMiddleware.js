@@ -22,7 +22,8 @@ const verifyJWT = async (token, url) => {
       return false;
     }
   } catch (err) {
-    next(err);
+    logger.error(err);
+    return false;
   }
 };
 
@@ -57,7 +58,8 @@ let isValidSession = async (uuid) => {
 
     return isValid;
   } catch (err) {
-    next(err);
+    logger.error(err);
+    return false;
   }
 };
 
@@ -90,7 +92,8 @@ let isValidUser = async ({ isAdmin, userId }) => {
       user: fetchedUser,
     };
   } catch (err) {
-    next(err);
+    logger.error(err);
+    return false;
   }
 };
 

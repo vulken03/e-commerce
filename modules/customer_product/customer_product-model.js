@@ -1,5 +1,6 @@
 const helper = require("../../utils/helper");
 const sequelize = require("sequelize");
+
 const add_products_to_cart = async (customer_id, cart_data) => {
   const { product_id, quantity } = cart_data;
   const find_product = await _DB.product.findOne({
@@ -324,22 +325,13 @@ const list_cart = async (customer_id, filters) => {
 const place_order = async (customer_id, address_id) => {
   const cart_data = find_cart_data(customer_id);
   const address_data = find_address(customer_id, address_id);
-  const amount_data = find_total(customer_id);
-  const [cart, address, find_total_data] = await Promise.all([
-    cart_data,
-    address_data,
-    amount_data,
-  ]);
+  const [cart, address] = await Promise.all([cart_data, address_data]);
   if (cart.length !== 0 && address) {
-    const { total_price } = find_total_data;
     const transaction = await _DB.sequelize.transaction();
     const add_order_details = await _DB.order_detail.create(
       {
         customer_id: address.customer_id,
         address_id: address.address_id,
-        gst: (total_price * 1.5) / 100,
-        shipping_fee: 50,
-        subtotal: total_price * 1.015 + 50,
         order_status: "pending",
         purchase_date: new Date(),
       },
@@ -349,9 +341,6 @@ const place_order = async (customer_id, address_id) => {
           "order_detail_id",
           "customer_id",
           "address_id",
-          "gst",
-          "shipping_fee",
-          "subtotal",
           "order_status",
           "purchase_date",
         ],
@@ -362,14 +351,24 @@ const place_order = async (customer_id, address_id) => {
       for (let i of cart) {
         product_details.push({
           quantity: i.quantity,
-          price: i.price,
+          price: i.price * i.quantity,
           product_id: i.product_id,
+          gst: i.price * i.quantity * 0.15,
+          subtotal: i.price * i.quantity * 1.15 + 50, //total_price+total_price*0.15/100=>total_price(1+0.15)
           order_detail_id: add_order_details.order_detail_id,
         });
       }
 
       const confirm_order = await _DB.order_item.bulkCreate(product_details, {
-        fields: ["quantity", "price", "product_id", "order_detail_id"],
+        fields: [
+          "quantity",
+          "price",
+          "product_id",
+          "order_detail_id",
+          "gst",
+          "shipping_fee",
+          "subtotal",
+        ],
         transaction,
       });
       if (confirm_order.length !== 0) {
@@ -415,29 +414,6 @@ const place_order = async (customer_id, address_id) => {
   }
 };
 
-const find_total = (customer_id) => {
-  const find_data = _DB.cart.findOne({
-    where: {
-      customer_id,
-    },
-    attributes: [
-      "customer_id",
-      [sequelize.literal(`(SUM(product.price*cart.quantity))`), "total_price"],
-    ],
-    include: {
-      model: _DB.product,
-      attributes: [],
-    },
-    group: "customer_id",
-    raw: true,
-  });
-  if (find_data) {
-    return find_data;
-  } else {
-    return false;
-  }
-};
-
 const find_cart_data = (customer_id) => {
   const find_data = _DB.cart.findAll({
     where: {
@@ -457,11 +433,7 @@ const find_cart_data = (customer_id) => {
     //group: "customer_id",
     raw: true,
   });
-  if (find_data) {
-    return find_data;
-  } else {
-    return false;
-  }
+  return find_data;
 };
 
 const find_address = (customer_id, address_id) => {
@@ -485,12 +457,50 @@ const find_address = (customer_id, address_id) => {
       raw: true,
     });
   }
-  if (address) {
-    return address;
-  } else {
-    return false;
-  }
+  return address;
 };
+
+// const list_order_details = async (
+//   customer_id,
+//   { sortby = {}, pagination = {} }
+// ) => {
+//   let filter = {};
+//   filter.order = helper.getSortFilter(sortby);
+//   if ("page" in pagination && "limit" in pagination) {
+//     page = Number(pagination.page);
+//     filter.offset = Number((pagination.page - 1) * pagination.limit);
+//     filter.limit = Number(pagination.limit);
+//   }
+//   const order_details = await _DB.order_detail.findAll({
+//     where: {
+//       customer_id,
+//     },
+//     offset: filter.offset,
+//     limit: filter.limit,
+//     order: filter.order,
+//     attributes: [
+
+//       [
+//         sequelize.fn("sum", sequelize.col("order_items.quantity")),
+//         "total_quantity",
+//       ],
+//       [sequelize.fn("sum", sequelize.col("order_items.subtotal")), "subtotal"],
+//     ],
+//     include: {
+//       model: _DB.order_item,
+//       attributes: [],
+//     },
+
+//     group: ["order_items.order_detail_id"],
+//     raw: true,
+//   });
+//   console.log(order_details);
+//   return {
+//     success: true,
+//     data: order_details,
+//     message: "all order details...",
+//   };
+// };
 
 const list_order_details = async (
   customer_id,
@@ -511,25 +521,22 @@ const list_order_details = async (
     limit: filter.limit,
     order: filter.order,
     attributes: [
-      "order_detail_id",
+      "order_items.order_detail_id",
       "order_items.quantity",
       "order_items.price",
-      "gst",
-      "shipping_fee",
-      "subtotal",
+      "order_items.gst",
+      "order_items.subtotal",
       "order_status",
       "purchase_date",
     ],
-    include: [
-      {
-        model: _DB.order_item,
-        attributes: [],
-        include: {
-          model: _DB.product,
-          attributes: ["product_name"],
-        },
+    include: {
+      model: _DB.order_item,
+      attributes: [],
+      include: {
+        model: _DB.product,
+        attributes: [sequelize.literal("product_name")],
       },
-    ],
+    },
     raw: true,
   });
   console.log(order_details);
@@ -540,28 +547,112 @@ const list_order_details = async (
   };
 };
 
-// const specific_order_details = async (customer_id, order_id) => {
-//   const find_specific_order = await _DB.order.findOne({
-//     where: {
-//       order_id,
-//       customer_id,
-//     },
-//     attributes: [
-//       "order_id",
-//       "price",
-//       "gst",
-//       "quantity",
-//       "shipping_fee",
-//       "subtotal",
-//     ],
-//     raw: true,
-//   });
-//   return {
-//     success: true,
-//     data: find_specific_order,
-//     message: "specific order details...",
-//   };
-// };
+const specific_order_details = async (customer_id, order_detail_id) => {
+  const find_specific_order = await _DB.order_detail.findAll({
+    where: {
+      order_detail_id,
+      customer_id,
+    },
+    attributes: [
+      "order_items.order_detail_id",
+      "order_items.quantity",
+      "order_items.price",
+      "order_items.gst",
+      "order_items.subtotal",
+      "order_status",
+      "purchase_date",
+    ],
+    include: {
+      model: _DB.order_item,
+      attributes: [],
+      include: {
+        model: _DB.product,
+        attributes: [sequelize.literal("product_name")],
+      },
+    },
+    raw: true,
+  });
+  return {
+    success: true,
+    data: find_specific_order,
+    message: "specific order details...",
+  };
+};
+
+const cancel_order = async (order_detail_id, customer_id) => {
+  const find_order_details = await _DB.order_detail.findOne({
+    where: {
+      order_detail_id,
+    },
+    attributes: ["order_detail_id", "order_status", "customer_id","purchase_date"],
+  });
+  if (find_order_details) {
+    if (find_order_details.customer_id === customer_id) {
+      if (find_order_details.order_status === "pending") {
+        dt2 = new Date();
+        dt1 = find_order_details.purchase_date;
+        let diff = (dt2.getTime() - dt1.getTime()) / 1000;
+        diff /= 60 * 60;
+        const date = Math.abs(Math.round(diff));
+        if (date <= 24) {
+          const cancel_order = await find_order_details.update(
+            {
+              order_status: "cancelled",
+            },
+            { fields: ["order_status"] }
+          );
+          if (cancel_order) {
+            return {
+              success: true,
+              data: null,
+              message: "order cancelled..",
+            };
+          } else {
+            const error_message = "error while cancelling order";
+            return {
+              success: false,
+              data: null,
+              error: new Error(error_message).stack,
+              message: error_message,
+            };
+          }
+        } else {
+          const error_message = "you can't cancel order after 24 hours.";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
+        }
+      } else {
+        const error_message = "you just cancel order when it is pending.";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
+      }
+    } else {
+      const error_message = "you can't cancel this order..";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    const error_message = "order is not found with given order_detail_id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
 
 module.exports = {
   add_products_to_cart,
@@ -570,5 +661,6 @@ module.exports = {
   list_cart,
   place_order,
   list_order_details,
-  // specific_order_details,
+  specific_order_details,
+  cancel_order,
 };

@@ -1210,6 +1210,110 @@ const update_product = async (product_id, product_data) => {
   }
 };
 
+const manage_order_status = async (order_detail_id, order_status) => {
+  const order_details = await _DB.order_detail.findOne({
+    where: {
+      order_detail_id,
+    },
+    attributes: ["order_detail_id", "order_status"],
+  });
+  if (order_details) {
+    if (
+      order_details.order_status === "pending" &&
+      (order_status === "declined" || order_status === "dispatched")
+    ) {
+      await order_details.update(
+        {
+          order_status,
+        },
+        { fields: ["order_status"] }
+      );
+      return {
+        success: true,
+        data: null,
+        message: "order status changed successfully..",
+      };
+    } else if (
+      order_details.order_status === "dispatched" &&
+      order_status === "shipped"
+    ) {
+      await order_details.update(
+        {
+          order_status,
+        },
+        { fields: ["order_status"] }
+      );
+      return {
+        success: true,
+        data: null,
+        message: "order status changed successfully..",
+      };
+    } else if (
+      order_details.order_status === "shipped" &&
+      order_status === "delivered"
+    ) {
+      await order_details.update(
+        {
+          order_status,
+        },
+        { fields: ["order_status"] }
+      );
+      return {
+        success: true,
+        data: null,
+        message: "order status changed successfully..",
+      };
+    } else if (
+      order_details.order_status === "refund_pending" &&
+      order_status === "refund_complete"
+    ) {
+      await order_details.update(
+        {
+          order_status,
+        },
+        { fields: ["order_status"] }
+      );
+      return {
+        success: true,
+        data: null,
+        message: "order status changed successfully..",
+      };
+    } else if (
+      order_details.order_status === "delivered" &&
+      order_status === "refund_pending"
+    ) {
+      await order_details.update(
+        {
+          order_status,
+        },
+        { fields: ["order_status"] }
+      );
+      return {
+        success: true,
+        data: null,
+        message: "order status changed successfully..",
+      };
+    } else {
+      const error_message = "error while changing order status";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    const error_message =
+      "order detail is not found with given order_detail_id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
 module.exports = {
   create_product_type,
   delete_product_type,
@@ -1221,4 +1325,5 @@ module.exports = {
   specific_product_listing,
   delete_product,
   update_product,
+  manage_order_status,
 };

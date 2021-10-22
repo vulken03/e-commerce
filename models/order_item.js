@@ -18,6 +18,14 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
+    gst: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
+    subtotal: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+    },
     order_detail_id: {
       type: Sequelize.INTEGER,
       allowNull: false,

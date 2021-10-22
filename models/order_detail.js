@@ -14,18 +14,6 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false,
     },
-    gst: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
-    shipping_fee: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
-    subtotal: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-    },
     order_status: {
       type: Sequelize.STRING,
       allowNull: false,
