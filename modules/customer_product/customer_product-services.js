@@ -182,12 +182,20 @@ const specific_order_details = async (req, res, next) => {
       customer_id,
       order_detail_id
     );
-
+    if(order_details.success===true){
     res.status(constants.responseCodes.success).json({
       success: order_details.success,
       data: order_details.data,
       message: order_details.message,
     });
+  }else{
+    res.status(constants.responseCodes.badrequest).json({
+      success: order_details.success,
+      data: order_details.data,
+      error: order_details.error,
+      message: order_details.message,
+    });
+  }
   } catch (err) {
     next(err);
     logger.error(err);

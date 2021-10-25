@@ -37,10 +37,10 @@ const signup = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-  const customer_data = decryptRequestData(req.body.data);
   //console.log('admin',admin_data);
 
   try {
+    const customer_data = decryptRequestData(req.body.data);
     const { isValid, error } = common.schemaValidator(
       customer_data,
       customer_schema.loginSchema
@@ -81,11 +81,11 @@ const update_profile = async (req, res, next) => {
     if (!isValid) {
       return next(error);
     }
-    const update_profile_data = await customer_model.update_profile(
-      data,
+    const update_profile_data = await customer_model.update_profile({
+      customer_data: data,
       customer_id,
-      customer_params_id
-    );
+      customer_params_id,
+    });
 
     if (update_profile_data.success === true) {
       res.status(constants.responseCodes.success).json({

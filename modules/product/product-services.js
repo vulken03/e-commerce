@@ -100,11 +100,20 @@ const find_single_product_type = async (req, res, next) => {
     const product_type = await product_model.specific_product_type(
       req.params.product_type_id
     );
-    res.status(constants.responseCodes.success).json({
-      success: product_type.success,
-      data: product_type.data,
-      message: product_type.message,
-    });
+    if (product_type.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: product_type.success,
+        data: product_type.data,
+        message: product_type.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: product_type.success,
+        data: product_type.data,
+        error: product_type.error,
+        message: product_type.message,
+      });
+    }
   } catch (err) {
     next(err);
     logger.error(err);
@@ -207,11 +216,20 @@ const specific_product_listing = async (req, res, next) => {
     const specific_product = await product_model.specific_product_listing(
       req.params.product_id
     );
-    res.status(constants.responseCodes.success).json({
-      success: specific_product.success,
-      data: specific_product.data,
-      message: specific_product.message,
-    });
+    if (specific_product.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: specific_product.success,
+        data: specific_product.data,
+        message: specific_product.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: specific_product.success,
+        data: specific_product.data,
+        error: specific_product.error,
+        message: specific_product.message,
+      });
+    }
   } catch (err) {
     next(err);
     logger.error(err);

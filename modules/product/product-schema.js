@@ -19,11 +19,7 @@ const productSchema = {
       minItems: 1,
     },
   },
-  required: [
-    "product_type_name",
-    "product_category_list",
-    "product_brand_list",
-  ],
+  required: ["product_type_name", "product_category_list"],
 };
 
 const update_product_type_schema = {
@@ -32,8 +28,22 @@ const update_product_type_schema = {
     product_type_name: {
       type: "string",
     },
+    product_category_list: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+      minItems: 1,
+    },
+    product_brand_list: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+      minItems: 1,
+    },
   },
-  required: ["product_type_name"],
+  required: ["product_type_name", "product_category_list"],
 };
 const create_specification_schema = {
   type: "object",

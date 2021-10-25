@@ -4,7 +4,7 @@ const moment = require("moment");
 const config = require("../configuration/config");
 const { logger } = require("../utils/logger");
 
-const verifyJWT = async (token, url) => {
+const verifyJWT = async ({ token, url }) => {
   try {
     let userData = null;
     if (url === "/resetpassword") {
@@ -22,8 +22,7 @@ const verifyJWT = async (token, url) => {
       return false;
     }
   } catch (err) {
-    logger.error(err);
-    return false;
+    throw err;
   }
 };
 
@@ -104,7 +103,10 @@ let authenticateRequest = async (req, res, next) => {
 
   try {
     if (req.headers.authorization) {
-      const userData = await verifyJWT(req.headers.authorization, req.url);
+      const userData = await verifyJWT({
+        token: req.headers.authorization,
+        url:req.url,
+      });
 
       const isSessionValid = await isValidSession(userData.uuid);
       if (!isSessionValid) {

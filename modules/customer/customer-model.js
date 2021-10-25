@@ -307,11 +307,11 @@ const login = async ({ email, password }) => {
   }
 };
 
-const update_profile = async (
+const update_profile = async ({
   customer_data,
   customer_id,
-  customer_params_id
-) => {
+  customer_params_id,
+}) => {
   const { name, username, email, phoneno } = customer_data;
   const find_customer_data = await _DB.customer.findOne({
     where: {

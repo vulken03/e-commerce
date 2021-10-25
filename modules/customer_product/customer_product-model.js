@@ -508,10 +508,13 @@ const list_order_details = async (
 ) => {
   let filter = {};
   filter.order = helper.getSortFilter(sortby);
+  console.log("order by", filter.order);
   if ("page" in pagination && "limit" in pagination) {
-    page = Number(pagination.page);
-    filter.offset = Number((pagination.page - 1) * pagination.limit);
-    filter.limit = Number(pagination.limit);
+    //if(pagination&&pagination.page&&pagination.limit) {
+    page = pagination.page;
+    filter.offset = (pagination.page - 1) * pagination.limit;
+    filter.limit = pagination.limit;
+    //}
   }
   const order_details = await _DB.order_detail.findAll({
     where: {
@@ -521,7 +524,7 @@ const list_order_details = async (
     limit: filter.limit,
     order: filter.order,
     attributes: [
-      "order_items.order_detail_id",
+      "order_detail_id",
       "order_items.quantity",
       "order_items.price",
       "order_items.gst",
@@ -537,7 +540,7 @@ const list_order_details = async (
         attributes: [sequelize.literal("product_name")],
       },
     },
-    raw: true,
+    //raw: true,
   });
   console.log(order_details);
   return {
@@ -572,11 +575,21 @@ const specific_order_details = async (customer_id, order_detail_id) => {
     },
     raw: true,
   });
-  return {
-    success: true,
-    data: find_specific_order,
-    message: "specific order details...",
-  };
+  if (find_specific_order.length) {
+    return {
+      success: true,
+      data: find_specific_order,
+      message: "specific order details...",
+    };
+  } else {
+    const error_message = "order_details not found";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
 };
 
 const cancel_order = async (order_detail_id, customer_id) => {
@@ -584,7 +597,12 @@ const cancel_order = async (order_detail_id, customer_id) => {
     where: {
       order_detail_id,
     },
-    attributes: ["order_detail_id", "order_status", "customer_id","purchase_date"],
+    attributes: [
+      "order_detail_id",
+      "order_status",
+      "customer_id",
+      "purchase_date",
+    ],
   });
   if (find_order_details) {
     if (find_order_details.customer_id === customer_id) {

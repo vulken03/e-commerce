@@ -33,34 +33,60 @@ const create_product_type = async (productData) => {
     );
     console.log(create_product_type);
     if (create_product_type) {
-      const category = await create_category({
-        create_product_type,
-        product_category_list,
-        transaction,
-      });
-      const brand = await create_brand({
-        create_product_type,
-        product_brand_list,
-        transaction,
-      });
-      const [m1, m2] = await Promise.all([category, brand]);
-      if (m1 && m2) {
-        //console.log(typeof m1);
-        await transaction.commit();
-        return {
-          success: true,
-          data: create_product_type,
-          message: "product_type,category and brand created successfully...",
-        };
+      if (!product_brand_list) {
+        const category = await create_category({
+          create_product_type,
+          product_category_list,
+          transaction,
+        });
+        if (category) {
+          await transaction.commit();
+          return {
+            success: true,
+            data: create_product_type,
+            message: "product_type and category created successfully...",
+          };
+        } else {
+          await transaction.rollback();
+          const error_message =
+            "error while creating product_type and category";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
+        }
       } else {
-        await transaction.rollback();
-        const error_message = "error while creating category or brand";
-        return {
-          success: false,
-          data: null,
-          error: new Error(error_message).stack,
-          message: error_message,
-        };
+        const category = await create_category({
+          create_product_type,
+          product_category_list,
+          transaction,
+        });
+        const brand = await create_brand({
+          create_product_type,
+          product_brand_list,
+          transaction,
+        });
+        const [m1, m2] = await Promise.all([category, brand]);
+        if (m1 && m2) {
+          //console.log(typeof m1);
+          await transaction.commit();
+          return {
+            success: true,
+            data: create_product_type,
+            message: "product_type,category and brand created successfully...",
+          };
+        } else {
+          await transaction.rollback();
+          const error_message = "error while creating category or brand";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
+        }
       }
     } else {
       await transaction.rollback();
@@ -423,11 +449,21 @@ const specific_product_type = async (product_type_id) => {
     group: "product_type.product_type_id",
     raw: true,
   });
-  return {
-    success: true,
-    data: find_product_type,
-    message: "specific product_type",
-  };
+  if (find_product_type) {
+    return {
+      success: true,
+      data: find_product_type,
+      message: "specific product_type",
+    };
+  } else {
+    const error_message = "product_type not found";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
 };
 
 const update_product_type = async (product_type_id, product_type_data) => {
@@ -451,6 +487,30 @@ const update_product_type = async (product_type_id, product_type_data) => {
         }
       );
       if (product_type_update) {
+        if (!product_brand_list) {
+          const category = update_category({
+            find_product_type,
+            product_category_list,
+            transaction,
+          });
+          if (category) {
+            await transaction.commit();
+            return {
+              success: true,
+              data: null,
+              message: "product_type and product_category updated successfully",
+            };
+          } else {
+            await transaction.rollback();
+            const error_message = "error while updating product_category";
+            return {
+              success: false,
+              data: null,
+              error: new Error(error_message).stack,
+              message: error_message,
+            };
+          }
+        }
         const category = update_category({
           find_product_type,
           product_category_list,
@@ -632,7 +692,73 @@ const update_brand = async ({
       },
       attributes: ["product_type_id"],
     });
-    if (find_type_brand.length) {
+    if (find_type_brand.length === 0) {
+      const brand_list = [];
+      for (let a of product_brand_list) {
+        const find_brand = await _DB.product_brand.findOne({
+          where: {
+            brand_name: a,
+          },
+          attributes: ["brand_id", "brand_name"],
+        });
+
+        if (!find_brand) {
+          brand_list.push({
+            brand_name: a,
+          });
+        } else {
+          await _DB.type_brand.create(
+            {
+              brand_id: find_brand.brand_id,
+              product_type_id: find_product_type.product_type_id,
+            },
+            { transaction, fields: ["brand_id", "product_type_id"] }
+          );
+        }
+      }
+      const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
+        transaction,
+        fields: ["brand_name"],
+      });
+      if (create_brand.length >= 0) {
+        const type_brand_list = [];
+        for (let b of create_brand) {
+          type_brand_list.push({
+            product_type_id: find_product_type.product_type_id,
+            brand_id: b.brand_id,
+          });
+        }
+        const create_type_brand = await _DB.type_brand.bulkCreate(
+          type_brand_list,
+          { transaction, fields: ["product_type_id", "brand_id"] }
+        );
+        if (create_type_brand.length >= 0) {
+          return {
+            success: true,
+            data: null,
+          };
+        } else {
+          const error_message = "error while creating type_brand";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
+        }
+      } else {
+        const error_message = "error while updating brand";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
+      }
+      //} else {
+      //throw new Error("error while deletion");
+      //}
+    } else {
       await _DB.type_brand.destroy({
         where: {
           product_type_id: find_product_type.product_type_id,
@@ -702,18 +828,10 @@ const update_brand = async ({
           message: error_message,
         };
       }
-      //} else {
-      //throw new Error("error while deletion");
-      //}
-    } else {
-      const error_message = "error while updating brand";
-      return {
-        success: false,
-        data: null,
-        error: new Error(error_message).stack,
-        message: error_message,
-      };
     }
+    //} else {
+    //throw new Error("error while deletion");
+    //}
   } catch (err) {
     // C-TODO: update_brand is a private method that means, its not exported through module.exports or called by service method, so your return data should be similar to what you are using in try block i.e. object with status, error & message prop. and using logger, log the error.
     logger.error(err);
@@ -927,11 +1045,21 @@ const specific_product_listing = async (product_id) => {
     },
     raw: true,
   });
-  return {
-    success: true,
-    data: specific_product,
-    message: "product which is specified by you..",
-  };
+  if (specific_product) {
+    return {
+      success: true,
+      data: specific_product,
+      message: "product which is specified by you..",
+    };
+  } else {
+    const error_message = "product not found";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
 };
 
 const delete_product = async (product_id) => {
