@@ -441,7 +441,7 @@ const generatePasswordResetJwt = async (user, session) => {
       email,
       isAdmin,
     },
-    config.get("jwt.reset_password_key"), // TODO: read this from config
+    config.get("jwt.reset_password_key"), //C-TODO: read this from config
     { expiresIn: "1h", algorithm: "HS384" }
   );
   if (token) {
@@ -547,7 +547,7 @@ const reset_password = async (customer_id, password) => {
       }
     );
     if (password_reset) {
-      // TODO: after password reset kill the session by turning is_loggedout to 1
+      //C-TODO: after password reset kill the session by turning is_loggedout to 1
       await _DB.session.update(
         {
           is_loggedout: 1,

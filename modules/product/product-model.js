@@ -462,7 +462,7 @@ const update_product_type = async (product_type_id, product_type_data) => {
           transaction,
         });
         const [m1, m2] = await Promise.all([category, brand]);
-        // TODO: read about the difference between == & === in js and make changes in below line
+        //C-TODO: read about the difference between == & === in js and make changes in below line
         if (m1.success === true && m2.success === true) {
           await transaction.commit();
           return {

@@ -96,7 +96,7 @@ const update_product_type_attribute = async (
         attributes: ["attribute_id"],
       });
     if (find_product_type_attribute) {
-      // TODO: transaction & fields prop are not kept at right place, read sequelize doc..already this was highlighted at other places, again you have made the same mistake..
+      //C-TODO: transaction & fields prop are not kept at right place, read sequelize doc..already this was highlighted at other places, again you have made the same mistake..
       const update_product_type_attribute =
         await find_product_type_attribute.update(
           {
