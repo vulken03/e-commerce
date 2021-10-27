@@ -21,10 +21,26 @@ const schemaValidator = (schema, schemaStructure) => {
 };
 
 const allowAdminOnly = (req, res, next) => {
-  if (req.isAdmin == 1) {
-    next();
-  } else {
-    return next(new error(constants.errors.routeAccessDenied));
+  try {
+    if (req.isAdmin == 1) {
+      next();
+    } else {
+      throw new Error("router access denied.");
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+const allowCustomerOnly = (req, res, next) => {
+  try {
+    if (req.isAdmin == 0) {
+      next();
+    } else {
+      throw new Error("invalid request..");
+    }
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -50,4 +66,5 @@ module.exports = {
   schemaValidator,
   allowAdminOnly,
   sendEmail,
+  allowCustomerOnly,
 };

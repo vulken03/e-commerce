@@ -1,4 +1,5 @@
 const { constants } = require("../../utils/constant");
+const url = require("url");
 const common = require("../../utils/common");
 const customer_product_model = require("./customer_product-model");
 const customer_product_schema = require("./customer_product-schema");
@@ -155,13 +156,25 @@ const place_order = async (req, res, next) => {
   }
 };
 
-const list_order_details = async (req, res, next) => {
+const order_listing = async (req, res, next) => {
   try {
     const customer_id = req.user.customer_id;
     const filters = req.body || {};
-    const order_details = await customer_product_model.list_order_details(
+    const Currenturl = url.parse(req.url, true);
+    const date = Currenturl.query;
+    const isAdmin = req.isAdmin;
+    const { isValid, error } = common.schemaValidator(
+      date,
+      customer_product_schema.order_listing_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const order_details = await customer_product_model.order_listing(
       customer_id,
-      filters
+      filters,
+      date,
+      isAdmin
     );
     res.status(constants.responseCodes.success).json({
       success: order_details.success,
@@ -174,28 +187,28 @@ const list_order_details = async (req, res, next) => {
   }
 };
 
-const specific_order_details = async (req, res, next) => {
+const specific_order_listing = async (req, res, next) => {
   try {
     const customer_id = req.user.customer_id;
     const order_detail_id = req.params.order_detail_id;
-    const order_details = await customer_product_model.specific_order_details(
+    const order_details = await customer_product_model.specific_order_listing(
       customer_id,
       order_detail_id
     );
-    if(order_details.success===true){
-    res.status(constants.responseCodes.success).json({
-      success: order_details.success,
-      data: order_details.data,
-      message: order_details.message,
-    });
-  }else{
-    res.status(constants.responseCodes.badrequest).json({
-      success: order_details.success,
-      data: order_details.data,
-      error: order_details.error,
-      message: order_details.message,
-    });
-  }
+    if (order_details.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: order_details.success,
+        data: order_details.data,
+        message: order_details.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: order_details.success,
+        data: order_details.data,
+        error: order_details.error,
+        message: order_details.message,
+      });
+    }
   } catch (err) {
     next(err);
     logger.error(err);
@@ -229,13 +242,35 @@ const cancel_order = async (req, res, next) => {
     logger.error(err);
   }
 };
+
+const order_details = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const filterby = req.body || {};
+    const isAdmin = req.isAdmin;
+    const order_detail = await customer_product_model.order_details(
+      customer_id,
+      filterby,
+      isAdmin
+    );
+    res.status(constants.responseCodes.success).json({
+      success: order_detail.success,
+      data: order_detail.data,
+      message: order_detail.message,
+    });
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
 module.exports = {
   add_products_to_cart,
   remove_products_from_cart,
   manage_quantity,
   list_cart,
   place_order,
-  list_order_details,
-  specific_order_details,
+  order_listing,
+  specific_order_listing,
   cancel_order,
+  order_details,
 };

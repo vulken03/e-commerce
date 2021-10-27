@@ -1,3 +1,4 @@
+const url = require("url");
 const customer_model = require("./customer-model");
 const { constants } = require("../../utils/constant");
 const customer_schema = require("./customer-schema");
@@ -212,6 +213,7 @@ const password_reset = async (req, res, next) => {
 const verify_email = async (req, res, next) => {
   try {
     const token = req.body;
+    const customer_id = req.user.customer_id;
     const { isValid, error } = common.schemaValidator(
       token,
       customer_schema.verify_token_schema
@@ -219,7 +221,10 @@ const verify_email = async (req, res, next) => {
     if (!isValid) {
       return next(error);
     }
-    const email_verification = await customer_model.verify_email(token);
+    const email_verification = await customer_model.verify_email(
+      token,
+      customer_id
+    );
     if (email_verification.success === true) {
       res.status(constants.responseCodes.success).json({
         success: email_verification.success,
@@ -358,6 +363,37 @@ const customer_logout = async (req, res, next) => {
     next(err);
   }
 };
+
+const email_verification = async (req, res, next) => {
+  try {
+    const data = req.body;
+    const { email } = data;
+    const { isValid, error } = common.schemaValidator(
+      data,
+      customer_schema.verify_schema
+    );
+    if (!isValid) {
+      return next(error);
+    }
+    const email_verify = await customer_model.email_verification(email);
+    if (email_verify.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: email_verify.success,
+        data: email_verify.data,
+        message: email_verify.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: email_verify.success,
+        data: email_verify.data,
+        error: email_verify.error,
+        message: email_verify.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   signup,
   login,
@@ -369,5 +405,6 @@ module.exports = {
   address_manage,
   delete_address,
   update_address,
+  email_verification,
   customer_logout,
 };

@@ -54,6 +54,11 @@ const config = convict({
       format: String,
       default: "encrypt@200",
     },
+    verification_email_key: {
+      doc: "JWT key",
+      format: String,
+      default: "encrypt@100",
+    },
   },
   logger: {
     filename: {
@@ -63,7 +68,7 @@ const config = convict({
     },
   },
   mailer: {
-    // TODO: only read pass prop of mailer from .env file
+    //C-TODO: only read pass prop of mailer from .env file
     from: {
       doc: "From email address",
       format: String,

@@ -25,7 +25,7 @@ const signupSchema = {
     email: {
       type: "string",
       maxLength: 254,
-      format:"email",
+      format: "email",
     },
     name: {
       type: "string",
@@ -135,6 +135,16 @@ const verify_token_schema = {
   },
 };
 
+const verify_schema = {
+  type: "object",
+  properties: {
+    email: {
+      type: "string",
+    },
+    required: ["email"],
+  },
+};
+
 const manage_address_schema = {
   type: "object",
   properties: {
@@ -169,4 +179,5 @@ module.exports = {
   password_reset_schema,
   verify_token_schema,
   manage_address_schema,
+  verify_schema
 };

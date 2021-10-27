@@ -55,7 +55,7 @@ module.exports = (sequelize, Sequelize) => {
     }
   );
   customer.associate = (models) => {
-    customer.hasOne(models.verification_token, {
+    customer.hasMany(models.verification_token, {
       foreignKey: "customer_id",
     });
     customer.hasMany(models.customer_address, {

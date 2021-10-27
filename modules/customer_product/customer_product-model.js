@@ -1,6 +1,6 @@
 const helper = require("../../utils/helper");
 const sequelize = require("sequelize");
-
+const { Op } = require("sequelize");
 const add_products_to_cart = async (customer_id, cart_data) => {
   const { product_id, quantity } = cart_data;
   const find_product = await _DB.product.findOne({
@@ -150,10 +150,9 @@ const manage_quantity = async (cart_id, customer_id, quantity_data) => {
               const quantity_update = await find_cart_data.update(
                 {
                   quantity: quantity_data.quantity,
-                  price: quantity_data.quantity * find_product_data.price,
                 },
                 {
-                  fields: ["quantity", "price"],
+                  fields: ["quantity"],
                 }
               );
               if (quantity_update) {
@@ -242,20 +241,27 @@ const manage_quantity = async (cart_id, customer_id, quantity_data) => {
 };
 
 const list_cart_details = (customer_id, { sortby = {}, pagination = {} }) => {
-  let filter = {};
-  filter.order = helper.getSortFilter(sortby);
-  if ("page" in pagination && "limit" in pagination) {
-    page = Number(pagination.page);
-    filter.offset = Number((pagination.page - 1) * pagination.limit);
-    filter.limit = Number(pagination.limit);
+  const order = helper.getSortFilter(sortby);
+  const { page, limit } = pagination;
+  const pageAsNumber = Number.parseInt(page);
+  const sizeAsNumber = Number.parseInt(limit);
+
+  let pages = 0;
+  if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+    pages = pageAsNumber;
+  }
+
+  let limits = 10;
+  if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0 && sizeAsNumber < 10) {
+    limits = sizeAsNumber;
   }
   const find_data = _DB.cart.findAll({
     where: {
       customer_id,
     },
-    offset: filter.offset,
-    limit: filter.limit,
-    order: filter.order,
+    limit: limits,
+    offset: limits * pages,
+    order,
     attributes: ["cart_id", "product.product_name"],
     include: {
       model: _DB.product,
@@ -266,22 +272,11 @@ const list_cart_details = (customer_id, { sortby = {}, pagination = {} }) => {
   return find_data;
 };
 
-const list_cart_items = (customer_id, { sortby = {}, pagination = {} }) => {
-  let filter = {};
-  filter.order = helper.getSortFilter(sortby);
-  if ("page" in pagination && "limit" in pagination) {
-    page = Number(pagination.page);
-    filter.offset = Number((pagination.page - 1) * pagination.limit);
-    filter.limit = Number(pagination.limit);
-  }
-
+const list_cart_items = (customer_id) => {
   const find_cart_data = _DB.cart.findOne({
     where: {
       customer_id,
     },
-    offset: filter.offset,
-    limit: filter.limit,
-    order: filter.order,
     attributes: [
       [sequelize.literal(`(SUM(cart.quantity))`), "total_product_count"],
 
@@ -299,12 +294,12 @@ const list_cart_items = (customer_id, { sortby = {}, pagination = {} }) => {
 
 const list_cart = async (customer_id, filters) => {
   const list_data = list_cart_details(customer_id, filters);
-  const list_quantity_and_price = list_cart_items(customer_id, filters);
+  const list_quantity_and_price = list_cart_items(customer_id);
   const [items, price_details] = await Promise.all([
     list_data,
     list_quantity_and_price,
   ]);
-  if (items.length !== 0 && price_details.length !== 0) {
+  if (items.length !== 0 && price_details) {
     const { total_product_count, total_price } = price_details;
     return {
       success: true,
@@ -351,10 +346,10 @@ const place_order = async (customer_id, address_id) => {
       for (let i of cart) {
         product_details.push({
           quantity: i.quantity,
-          price: i.price * i.quantity,
+          subtotal: i.price * i.quantity,
           product_id: i.product_id,
           gst: i.price * i.quantity * 0.15,
-          subtotal: i.price * i.quantity * 1.15 + 50, //total_price+total_price*0.15/100=>total_price(1+0.15)
+          price: i.price * i.quantity * 1.15 + 50, //total_price+total_price*0.15/100=>total_price(1+0.15)
           order_detail_id: add_order_details.order_detail_id,
         });
       }
@@ -502,47 +497,127 @@ const find_address = (customer_id, address_id) => {
 //   };
 // };
 
-const list_order_details = async (
-  customer_id,
-  { sortby = {}, pagination = {} }
-) => {
+const order_listing = async (customer_id, filters, date, isAdmin) => {
+  const { start_date, end_date } = date;
+  const { sortby = {}, pagination = {}, filterby = {} } = filters;
   let filter = {};
+  if (isAdmin === false) {
+    if (filterby.order_status) {
+      filter.where = {
+        customer_id,
+        order_status: filterby.order_status,
+      };
+    } else {
+      filter.where = {
+        customer_id,
+      };
+    }
+    if (start_date && end_date) {
+      filter.where = {
+        customer_id,
+        [Op.or]: {
+          purchase_date: {
+            [Op.between]: [start_date, end_date],
+          },
+        },
+      };
+    }
+    if (start_date && !end_date) {
+      filter.where = {
+        customer_id,
+        [Op.or]: {
+          purchase_date: {
+            [Op.gte]: start_date,
+          },
+        },
+      };
+    }
+    if (end_date && !start_date) {
+      filter.where = {
+        customer_id,
+        [Op.or]: {
+          purchase_date: {
+            [Op.lte]: end_date,
+          },
+        },
+      };
+    }
+  } else {
+    if (filterby.order_status) {
+      filter.where = {
+        order_status: filterby.order_status,
+      };
+    } else {
+      filter.where = {};
+    }
+    if (start_date && end_date) {
+      filter.where = {
+        [Op.or]: {
+          purchase_date: {
+            [Op.between]: [start_date, end_date],
+          },
+        },
+      };
+    }
+    if (start_date && !end_date) {
+      filter.where = {
+        [Op.or]: {
+          purchase_date: {
+            [Op.gte]: start_date,
+          },
+        },
+      };
+    }
+    if (end_date && !start_date) {
+      filter.where = {
+        [Op.or]: {
+          purchase_date: {
+            [Op.lte]: end_date,
+          },
+        },
+      };
+    }
+  }
   filter.order = helper.getSortFilter(sortby);
-  console.log("order by", filter.order);
-  if ("page" in pagination && "limit" in pagination) {
-    //if(pagination&&pagination.page&&pagination.limit) {
-    page = pagination.page;
-    filter.offset = (pagination.page - 1) * pagination.limit;
-    filter.limit = pagination.limit;
-    //}
+  const { page, limit } = pagination;
+  const pageAsNumber = Number.parseInt(page);
+  const sizeAsNumber = Number.parseInt(limit);
+
+  let pages = 0;
+  if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+    pages = pageAsNumber;
+  }
+
+  let limits = 10;
+  if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0 && sizeAsNumber < 10) {
+    limits = sizeAsNumber;
   }
   const order_details = await _DB.order_detail.findAll({
-    where: {
-      customer_id,
-    },
-    offset: filter.offset,
-    limit: filter.limit,
+    where: filter.where,
+    subQuery: false,
+    offset: pages * limits,
+    limit: limits,
     order: filter.order,
     attributes: [
-      "order_detail_id",
-      "order_items.quantity",
-      "order_items.price",
-      "order_items.gst",
-      "order_items.subtotal",
+      "order_items.order_detail_id",
+      [
+        sequelize.fn("sum", sequelize.col(`order_items.quantity`)),
+        "total_quantity",
+      ],
+      [sequelize.fn("sum", sequelize.col(`order_items.price`)), "total_price"],
+      [sequelize.fn("sum", sequelize.col(`order_items.gst`)), "gst"],
+      [sequelize.fn("sum", sequelize.col(`order_items.subtotal`)), "subtotal"],
       "order_status",
       "purchase_date",
     ],
     include: {
       model: _DB.order_item,
       attributes: [],
-      include: {
-        model: _DB.product,
-        attributes: [sequelize.literal("product_name")],
-      },
     },
-    //raw: true,
+    raw: true,
+    group: "order_detail.order_detail_id",
   });
-  console.log(order_details);
+
   return {
     success: true,
     data: order_details,
@@ -550,36 +625,37 @@ const list_order_details = async (
   };
 };
 
-const specific_order_details = async (customer_id, order_detail_id) => {
-  const find_specific_order = await _DB.order_detail.findAll({
+const specific_order_listing = async (customer_id, order_detail_id) => {
+  const order_details = await _DB.order_detail.findOne({
     where: {
-      order_detail_id,
       customer_id,
+      order_detail_id,
     },
     attributes: [
       "order_items.order_detail_id",
-      "order_items.quantity",
-      "order_items.price",
-      "order_items.gst",
-      "order_items.subtotal",
+      [
+        sequelize.fn("sum", sequelize.col(`order_items.quantity`)),
+        "total_quantity",
+      ],
+      [sequelize.fn("sum", sequelize.col(`order_items.price`)), "total_price"],
+      [sequelize.fn("sum", sequelize.col(`order_items.gst`)), "gst"],
+      [sequelize.fn("sum", sequelize.col(`order_items.subtotal`)), "subtotal"],
       "order_status",
       "purchase_date",
     ],
     include: {
       model: _DB.order_item,
       attributes: [],
-      include: {
-        model: _DB.product,
-        attributes: [sequelize.literal("product_name")],
-      },
     },
     raw: true,
+    group: "order_detail.order_detail_id",
   });
-  if (find_specific_order.length) {
+
+  if (order_details) {
     return {
       success: true,
-      data: find_specific_order,
-      message: "specific order details...",
+      data: order_details,
+      message: "all order details...",
     };
   } else {
     const error_message = "order_details not found";
@@ -590,6 +666,95 @@ const specific_order_details = async (customer_id, order_detail_id) => {
       message: error_message,
     };
   }
+};
+
+const order_details = async (customer_id, filterby, isAdmin) => {
+  const { sortby = {}, pagination = {} } = filterby;
+  let filter = {};
+  filter.order = helper.getSortFilter(sortby);
+  const { page, limit } = pagination;
+  const pageAsNumber = Number.parseInt(page);
+  const sizeAsNumber = Number.parseInt(limit);
+
+  let pages = 0;
+  if (!Number.isNaN(pageAsNumber) && pageAsNumber > 0) {
+    pages = pageAsNumber;
+  }
+
+  let limits = 10;
+  if (!Number.isNaN(sizeAsNumber) && sizeAsNumber > 0 && sizeAsNumber < 10) {
+    limits = sizeAsNumber;
+  }
+  if (isAdmin === false) {
+    filter.include = [
+      {
+        model: _DB.order_detail,
+        attributes: [],
+        where: {
+          customer_id,
+        },
+
+        include: {
+          model: _DB.customer_address,
+          attributes: [
+            sequelize.literal("street"),
+            sequelize.literal("city"),
+            sequelize.literal("pincode"),
+            sequelize.literal("state"),
+            sequelize.literal("country"),
+          ],
+        },
+      },
+      {
+        model: _DB.product,
+        attributes: [],
+      },
+    ];
+  } else {
+    filter.include = [
+      {
+        model: _DB.order_detail,
+        attributes: [],
+        include: [
+          {
+            model: _DB.customer_address,
+            attributes: [
+              sequelize.literal("street"),
+              sequelize.literal("city"),
+              sequelize.literal("pincode"),
+              sequelize.literal("state"),
+              sequelize.literal("country"),
+            ],
+          },
+          {
+            model: _DB.customer,
+            attributes: [
+              sequelize.literal("name"),
+              sequelize.literal("username"),
+              sequelize.literal("phoneno"),
+              sequelize.literal("email"),
+            ],
+          },
+        ],
+      },
+      {
+        model: _DB.product,
+        attributes: [],
+      },
+    ];
+  }
+  const find_order_details = await _DB.order_item.findAll({
+    attributes: ["order_item_id", "product.product_name", "order_detail_id"],
+    offset: pages * limits,
+    limit: limits,
+    order: filter.order,
+    include: filter.include,
+    raw: true,
+  });
+  return {
+    success: true,
+    data: find_order_details,
+  };
 };
 
 const cancel_order = async (order_detail_id, customer_id) => {
@@ -678,7 +843,8 @@ module.exports = {
   manage_quantity,
   list_cart,
   place_order,
-  list_order_details,
-  specific_order_details,
+  order_listing,
+  specific_order_listing,
   cancel_order,
+  order_details,
 };

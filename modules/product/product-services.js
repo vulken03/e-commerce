@@ -84,7 +84,7 @@ const product_type_listing = async (req, res, next) => {
       category_name,
       brand_name,
     });
-    // TODO: while listing provide product_type_id as well in response data
+    // C-TODO: while listing provide product_type_id as well in response data
     res.status(constants.responseCodes.success).json({
       success: product_type.success,
       data: product_type.data,

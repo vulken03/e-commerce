@@ -7,8 +7,12 @@ const { logger } = require("../utils/logger");
 const verifyJWT = async ({ token, url }) => {
   try {
     let userData = null;
-    if (url === "/resetpassword") {
+    if (url == "/resetpassword") {
       userData = jwt.verify(token, config.get("jwt.reset_password_key"), {
+        algorithms: ["HS384"],
+      });
+    } else if (url == "/email_verify") {
+      userData = jwt.verify(token, config.get("jwt.verification_email_key"), {
         algorithms: ["HS384"],
       });
     } else {
@@ -105,7 +109,7 @@ let authenticateRequest = async (req, res, next) => {
     if (req.headers.authorization) {
       const userData = await verifyJWT({
         token: req.headers.authorization,
-        url:req.url,
+        url: req.url,
       });
 
       const isSessionValid = await isValidSession(userData.uuid);
@@ -117,7 +121,7 @@ let authenticateRequest = async (req, res, next) => {
       const { isUserValid, user } = await isValidUser(userData);
       if (isUserValid) {
         console.log(user);
-        req.user = user; // TODO: exclude password field from user object
+        req.user = user; // C-TODO: exclude password field from user object
         req.user.uuid = userData.uuid;
         req.isAdmin = userData.isAdmin;
         next();

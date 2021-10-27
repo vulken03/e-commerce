@@ -79,25 +79,67 @@ const signup = async (userData) => {
           }
         );
         if (create_address) {
-          const create_token = await _DB.verification_token.create(
-            {
-              customer_id: create_customer.customer_id,
-            },
-            { transaction, fields: ["customer_id", "token"] }
+          const session = await createVerificationSession(
+            create_customer.customer_id
           );
+          if (session) {
+            const token = await generateVerificationJwt(
+              create_customer,
+              session
+            );
+            if (token) {
+              const create_token = await _DB.verification_token.create(
+                {
+                  customer_id: create_customer.customer_id,
+                  date: new Date(),
+                },
+                { transaction, fields: ["customer_id", "token", "date"] }
+              );
+              if (create_token) {
+                await transaction.commit();
+                await sendEmail({
+                  to: create_customer.email,
+                  subject: "account verification",
+                  html: `<h3>${create_token.token}</h3>`,
+                });
 
-          if (create_token) {
-            await transaction.commit();
-            await sendEmail({
-              to: create_customer.email,
-              subject: "account verification",
-              html: `<h3>${create_token.token}</h3>`,
-            });
+                return {
+                  success: true,
+                  data: token,
+                  message:
+                    "signup successfully check mail for email verification...",
+                };
+              } else {
+                await transaction.rollback();
+                const error_message =
+                  "error while creating token for email verification...";
+                return {
+                  success: false,
+                  data: null,
+                  error: new Error(error_message).stack,
+                  message: error_message,
+                };
+              }
+            } else {
+              await transaction.rollback();
+              const error_message =
+                "error while generating jwt token for email verification";
+              return {
+                success: false,
+                data: null,
+                error: new Error(error_message).stack,
+                message: error_message,
+              };
+            }
+          } else {
+            await transaction.rollback();
+            const error_message =
+              "error while creating email verification session";
             return {
-              success: true,
+              success: false,
               data: null,
-              message:
-                "signup successfully check mail for email verification...",
+              error: new Error(error_message).stack,
+              message: error_message,
             };
           }
         } else {
@@ -133,7 +175,56 @@ const signup = async (userData) => {
   }
 };
 
-const verify_email = async (token) => {
+const generateVerificationJwt = async (user, session) => {
+  const uuid = session.uuid;
+  const userId = user.customer_id;
+  const email = user.email;
+  const isAdmin = 0;
+  const token = jwt.sign(
+    {
+      uuid,
+      userId,
+      email,
+      isAdmin,
+    },
+    config.get("jwt.verification_email_key"),
+    { expiresIn: "1h", algorithm: "HS384" }
+  );
+  if (token) {
+    return token;
+  } else {
+    return false;
+  }
+};
+
+const createVerificationSession = async (customer_id) => {
+  const user_id = customer_id;
+  const session = await _DB.session.create(
+    {
+      user_id,
+      login_time: +moment().unix(),
+      time_to_leave: +moment().add(1, "hours").unix(),
+      is_loggedout: 0,
+      is_admin: 0,
+    },
+    {
+      fields: [
+        "user_id",
+        "login_time",
+        "time_to_leave",
+        "is_loggedout",
+        "is_admin",
+      ],
+    }
+  );
+  if (session) {
+    return session;
+  } else {
+    return false;
+  }
+};
+
+const verify_email = async (token, customer_id) => {
   const { uuid } = token;
   const find_token = await _DB.verification_token.findOne({
     where: {
@@ -143,7 +234,7 @@ const verify_email = async (token) => {
     raw: true,
   });
   if (find_token) {
-    await _DB.customer.update(
+    const verification_update = await _DB.customer.update(
       {
         is_verified: 1,
       },
@@ -154,15 +245,30 @@ const verify_email = async (token) => {
         fields: ["is_verified"],
       }
     );
-    // TODO once user is verified delete all its token from verification_token table
-    // TODO while generating token, store token creation datetime.
-    return {
-      success: true,
-      data: null,
-      message: "email_id verified",
-    };
+    // C-TODO once user is verified delete all its token from verification_token table
+    // C-TODO while generating token, store token creation datetime.
+    if (verification_update) {
+      await _DB.verification_token.destroy({
+        where: {
+          customer_id,
+        },
+      });
+      return {
+        success: true,
+        data: null,
+        message: "email_id verified",
+      };
+    } else {
+      const error_message = "error while updating verification status..";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
   } else {
-    const error_message = "error in token...";
+    const error_message = "you already verify or entered a wrond token";
     return {
       success: false,
       data: null,
@@ -171,6 +277,96 @@ const verify_email = async (token) => {
     };
   }
 };
+
+const email_verification = async (email) => {
+  const find_user = await _DB.customer.findOne({
+    where: {
+      email,
+    },
+    attributes: [
+      "customer_id",
+      "name",
+      "username",
+      "email",
+      "phoneno",
+      "is_verified",
+    ],
+    raw: true,
+  });
+
+  if (find_user) {
+    if (find_user.is_verified == false) {
+      const session = await createVerificationSession(find_user.customer_id);
+      if (session) {
+        const token = await generateVerificationJwt(find_user, session);
+        if (token) {
+          const create_token = await _DB.verification_token.create(
+            {
+              customer_id: find_user.customer_id,
+              date: new Date(),
+            },
+            { fields: ["customer_id", "token", "date"] }
+          );
+          if (create_token) {
+            await sendEmail({
+              to: find_user.email,
+              subject: "account verification",
+              html: `<h3>${create_token.token}</h3>`,
+            });
+            return {
+              success: true,
+              data: token,
+              message: "check email for email verification...",
+            };
+          } else {
+            const error_message =
+              "error while creating token for email verification...";
+            return {
+              success: false,
+              data: null,
+              error: new Error(error_message).stack,
+              message: error_message,
+            };
+          }
+        } else {
+          const error_message =
+            "error while generating jwt token for email verification";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
+        }
+      } else {
+        const error_message = "error while creating email verification session";
+        return {
+          success: false,
+          data: null,
+          error: new Error(error_message).stack,
+          message: error_message,
+        };
+      }
+    } else {
+      const error_message = "email is already verified";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    const error_message = "user not found with given email-id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
 const createSession = async ({ customer_id }) => {
   try {
     const userId = customer_id;
@@ -777,6 +973,7 @@ const customer_logout = async (uuid) => {
 module.exports = {
   signup,
   verify_email,
+  email_verification,
   login,
   update_profile,
   update_password,

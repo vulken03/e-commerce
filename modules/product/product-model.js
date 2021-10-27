@@ -277,7 +277,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
 
   if (category_name && !brand_name) {
     // C-TODO: why have you kept () around js statements?? there is no need of wrapping the line with ()
-    filter.attributes = ["product_type_name"];
+    filter.attributes = ["product_type_id", "product_type_name"];
     filter.include = {
       model: _DB.product_category,
       where: {
@@ -288,7 +288,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
     };
     filter.raw = true;
   } else if (brand_name && !category_name) {
-    filter.attributes = ["product_type_name"];
+    filter.attributes = ["product_type_id", "product_type_name"];
     filter.include = {
       model: _DB.product_brand,
       where: {
@@ -299,7 +299,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
     };
     filter.raw = true;
   } else if (category_name && brand_name) {
-    filter.attributes = ["product_type_name"];
+    filter.attributes = ["product_type_id", "product_type_name"];
     filter.include = [
       {
         model: _DB.product_category,
@@ -321,6 +321,7 @@ const product_type_listing = async ({ category_name, brand_name }) => {
     filter.raw = true;
   } else {
     filter.attributes = [
+      "product_type_id",
       "product_type_name",
       [
         sequelize.fn(

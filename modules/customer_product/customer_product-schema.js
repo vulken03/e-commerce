@@ -30,8 +30,20 @@ const place_order_schema = {
   },
 };
 
+const order_listing_schema = {
+  type: "object",
+  properties: {
+    start_date: {
+      type: "string",
+    },
+    end_date: {
+      type: "string",
+    },
+  },
+};
 module.exports = {
   add_to_cart_schema,
   manage_quantity_schema,
   place_order_schema,
+  order_listing_schema,
 };

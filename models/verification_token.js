@@ -10,6 +10,10 @@ module.exports = (sequelize, Sequelize) => {
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
+    date: {
+      type: Sequelize.DATE,
+      allowNull: false,
+    },
   });
   verification_token.associate = (models) => {
     verification_token.belongsTo(models.customer, {
