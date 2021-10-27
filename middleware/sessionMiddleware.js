@@ -117,7 +117,7 @@ let authenticateRequest = async (req, res, next) => {
       const { isUserValid, user } = await isValidUser(userData);
       if (isUserValid) {
         console.log(user);
-        req.user = user;
+        req.user = user; // TODO: exclude password field from user object
         req.user.uuid = userData.uuid;
         req.isAdmin = userData.isAdmin;
         next();

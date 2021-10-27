@@ -449,6 +449,7 @@ const specific_product_type = async (product_type_id) => {
     group: "product_type.product_type_id",
     raw: true,
   });
+  // C-TODO-don't pass success response when the given product type id does not exists
   if (find_product_type) {
     return {
       success: true,
@@ -692,135 +693,61 @@ const update_brand = async ({
       },
       attributes: ["product_type_id"],
     });
-    if (find_type_brand.length === 0) {
-      const brand_list = [];
-      for (let a of product_brand_list) {
-        const find_brand = await _DB.product_brand.findOne({
-          where: {
-            brand_name: a,
-          },
-          attributes: ["brand_id", "brand_name"],
-        });
-
-        if (!find_brand) {
-          brand_list.push({
-            brand_name: a,
-          });
-        } else {
-          await _DB.type_brand.create(
-            {
-              brand_id: find_brand.brand_id,
-              product_type_id: find_product_type.product_type_id,
-            },
-            { transaction, fields: ["brand_id", "product_type_id"] }
-          );
-        }
-      }
-      const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
-        transaction,
-        fields: ["brand_name"],
-      });
-      if (create_brand.length >= 0) {
-        const type_brand_list = [];
-        for (let b of create_brand) {
-          type_brand_list.push({
-            product_type_id: find_product_type.product_type_id,
-            brand_id: b.brand_id,
-          });
-        }
-        const create_type_brand = await _DB.type_brand.bulkCreate(
-          type_brand_list,
-          { transaction, fields: ["product_type_id", "brand_id"] }
-        );
-        if (create_type_brand.length >= 0) {
-          return {
-            success: true,
-            data: null,
-          };
-        } else {
-          const error_message = "error while creating type_brand";
-          return {
-            success: false,
-            data: null,
-            error: new Error(error_message).stack,
-            message: error_message,
-          };
-        }
-      } else {
-        const error_message = "error while updating brand";
-        return {
-          success: false,
-          data: null,
-          error: new Error(error_message).stack,
-          message: error_message,
-        };
-      }
-      //} else {
-      //throw new Error("error while deletion");
-      //}
-    } else {
+    // C-TODO - In case of empty type brand skip bulk destory operation
+    if (find_type_brand.length) {
       await _DB.type_brand.destroy({
         where: {
           product_type_id: find_product_type.product_type_id,
         },
         transaction,
       });
-      //if (type_brand_delete) {
-      const brand_list = [];
-      for (let a of product_brand_list) {
-        const find_brand = await _DB.product_brand.findOne({
-          where: {
-            brand_name: a,
-          },
-          attributes: ["brand_id", "brand_name"],
-        });
-
-        if (!find_brand) {
-          brand_list.push({
-            brand_name: a,
-          });
-        } else {
-          await _DB.type_brand.create(
-            {
-              brand_id: find_brand.brand_id,
-              product_type_id: find_product_type.product_type_id,
-            },
-            { transaction, fields: ["brand_id", "product_type_id"] }
-          );
-        }
-      }
-      const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
-        transaction,
-        fields: ["brand_name"],
+    }
+    const brand_list = [];
+    for (let a of product_brand_list) {
+      const find_brand = await _DB.product_brand.findOne({
+        where: {
+          brand_name: a,
+        },
+        attributes: ["brand_id", "brand_name"],
       });
-      if (create_brand.length >= 0) {
-        const type_brand_list = [];
-        for (let b of create_brand) {
-          type_brand_list.push({
-            product_type_id: find_product_type.product_type_id,
-            brand_id: b.brand_id,
-          });
-        }
-        const create_type_brand = await _DB.type_brand.bulkCreate(
-          type_brand_list,
-          { transaction, fields: ["product_type_id", "brand_id"] }
-        );
-        if (create_type_brand.length >= 0) {
-          return {
-            success: true,
-            data: null,
-          };
-        } else {
-          const error_message = "error while creating type_brand";
-          return {
-            success: false,
-            data: null,
-            error: new Error(error_message).stack,
-            message: error_message,
-          };
-        }
+
+      if (!find_brand) {
+        brand_list.push({
+          brand_name: a,
+        });
       } else {
-        const error_message = "error while updating brand";
+        await _DB.type_brand.create(
+          {
+            brand_id: find_brand.brand_id,
+            product_type_id: find_product_type.product_type_id,
+          },
+          { transaction, fields: ["brand_id", "product_type_id"] }
+        );
+      }
+    }
+    const create_brand = await _DB.product_brand.bulkCreate(brand_list, {
+      transaction,
+      fields: ["brand_name"],
+    });
+    if (create_brand.length >= 0) {
+      const type_brand_list = [];
+      for (let b of create_brand) {
+        type_brand_list.push({
+          product_type_id: find_product_type.product_type_id,
+          brand_id: b.brand_id,
+        });
+      }
+      const create_type_brand = await _DB.type_brand.bulkCreate(
+        type_brand_list,
+        { transaction, fields: ["product_type_id", "brand_id"] }
+      );
+      if (create_type_brand.length >= 0) {
+        return {
+          success: true,
+          data: null,
+        };
+      } else {
+        const error_message = "error while creating type_brand";
         return {
           success: false,
           data: null,
@@ -828,6 +755,14 @@ const update_brand = async ({
           message: error_message,
         };
       }
+    } else {
+      const error_message = "error while updating brand";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
     }
     //} else {
     //throw new Error("error while deletion");

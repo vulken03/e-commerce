@@ -5,3 +5,4 @@ module.exports = (app) => {
   require("../modules/customer")(app);
   require("../modules/customer_product")(app);
 };
+// TODO If an admin user tries to access customer routes then in response message it should say "invalid request" and sane is applicable vice versa..

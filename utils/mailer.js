@@ -10,7 +10,7 @@ const getGmailTransport = () => {
       port: 587,
       secure: false,
       tls: { rejectUnauthorized: false },
-      auth: {
+      auth: { // C-TODO: read this from convict's config variable
         user: config.get("mailer.from"),
         pass: config.get("mailer.pass"),
       },

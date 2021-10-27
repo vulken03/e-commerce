@@ -154,6 +154,8 @@ const verify_email = async (token) => {
         fields: ["is_verified"],
       }
     );
+    // TODO once user is verified delete all its token from verification_token table
+    // TODO while generating token, store token creation datetime.
     return {
       success: true,
       data: null,
