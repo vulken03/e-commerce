@@ -12,4 +12,9 @@ module.exports = (app) => {
     allowAdminOnly,
     attribute_service.update_product_type_attributes
   );
+
+  app.delete("/delete_product_type_attribute/:attribute_id",
+  allowAdminOnly,
+  attribute_service.delete_product_type_attribute
+  )
 };

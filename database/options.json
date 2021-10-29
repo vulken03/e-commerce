@@ -1,0 +1,6 @@
+{
+    "define": {
+      "freezeTableName": true,
+      "timestamps": false
+    }
+  }

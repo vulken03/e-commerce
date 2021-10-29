@@ -171,7 +171,54 @@ const update_product_type_attribute = async (
   }
 };
 
+const delete_product_type_attribute = async (attribute_id) => {
+  const find_attribute = await _DB.product_attribute_value.findOne({
+    where: {
+      attribute_id,
+    },
+    attributes: ["attribute_id"],
+    raw: true,
+  });
+  if (!find_attribute) {
+    const attribute = await _DB.product_type_attribute.findOne({
+      where: {
+        attribute_id,
+      },
+    });
+    if (attribute) {
+      await _DB.attribute_value.destroy({
+        where: {
+          attribute_id,
+        },
+      });
+      await attribute.destroy();
+      return {
+        success: true,
+        data: null,
+        message: "product_type_attribute deleted successfully",
+      };
+    } else {
+      const error_message = "attribute is not found";
+      return {
+        success: false,
+        data: null,
+        error: new Error(error_message).stack,
+        message: error_message,
+      };
+    }
+  } else {
+    const error_message = "product is already created with given attribute_id";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
 module.exports = {
   create_product_type_attribute,
   update_product_type_attribute,
+  delete_product_type_attribute,
 };

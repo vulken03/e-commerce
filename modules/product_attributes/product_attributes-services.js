@@ -3,7 +3,7 @@ const product_attributes_model = require("./product_attributes-model");
 const product_attributes_schema = require("./product_attributes-schema");
 const common = require("../../utils/common");
 const { constants } = require("../../utils/constant");
-const { logger } = require("../../utils/logger");
+//const { logger } = require("../../utils/logger");
 const add_product_type_attributes = async (req, res, next) => {
   try {
     const data = req.body;
@@ -73,7 +73,36 @@ const update_product_type_attributes = async (req, res, next) => {
     logger.error(err);
   }
 };
+
+const delete_product_type_attribute = async (req, res, next) => {
+  try {
+    const attribute_id = req.params.attribute_id;
+    const delete_attribute =
+      await product_attributes_model.delete_product_type_attribute(
+        attribute_id
+      );
+    if (delete_attribute.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: delete_attribute.success,
+        data: delete_attribute.data,
+        message: delete_attribute.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: delete_attribute.success,
+        data: delete_attribute.data,
+        error: delete_attribute.error,
+        message: delete_attribute.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
+
 module.exports = {
   add_product_type_attributes,
   update_product_type_attributes,
+  delete_product_type_attribute
 };

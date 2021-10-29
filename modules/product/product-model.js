@@ -430,6 +430,21 @@ const specific_product_type = async (product_type_id) => {
         ),
         "brand_list",
       ],
+
+      [
+        sequelize.literal(
+          `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
+                              product_type_attribute.attribute_name,
+                              'attribute_values',
+                              product_attribute_value.value))
+      FROM
+          product_attribute_value
+              LEFT JOIN
+          product_type_attribute ON product_attribute_value.attribute_id = product_type_attribute.attribute_id
+         )`
+        ),
+        "attribute_list",
+      ],
     ],
     include: [
       {
@@ -446,8 +461,15 @@ const specific_product_type = async (product_type_id) => {
           attributes: [],
         },
       },
+      {
+        model: _DB.product_type_attribute,
+        attributes: [],
+      },
     ],
-    group: "product_type.product_type_id",
+    group: [
+      "product_type.product_type_id",
+      "product_type_attributes.attribute_id",
+    ],
     raw: true,
   });
   // C-TODO-don't pass success response when the given product type id does not exists

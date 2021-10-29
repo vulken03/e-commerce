@@ -4,7 +4,7 @@ const { constants } = require("../../utils/constant");
 const customer_schema = require("./customer-schema");
 const { decryptRequestData } = require("../../utils/encrypt");
 const common = require("../../utils/common");
-const { logger } = require("../../utils/logger");
+//const { logger } = require("../../utils/logger");
 const signup = async (req, res, next) => {
   try {
     const data = req.body;

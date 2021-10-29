@@ -24,6 +24,8 @@ module.exports = (sequelize, Sequelize) => {
   product_type_attribute.associate = (models) => {
     product_type_attribute.belongsTo(models.product_type, {
       foreignKey: "product_type_id",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     });
     product_type_attribute.hasMany(models.attribute_value, {
       foreignKey: "attribute_id",

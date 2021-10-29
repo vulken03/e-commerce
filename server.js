@@ -3,8 +3,8 @@ const express = require("express");
 const middleware = require("./middleware");
 const api = require("./routes");
 const { errorHandler } = require("./utils/error");
-
 const { logger } = require("./utils/logger");
+const morgan = require("morgan");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -13,6 +13,8 @@ global.__basedir = __dirname;
 middleware(app);
 
 api(app);
+
+app.use(morgan("combined"));
 
 app.use(errorHandler);
 
