@@ -836,7 +836,6 @@ const cancel_order = async (order_detail_id, customer_id) => {
     };
   }
 };
-
 module.exports = {
   add_products_to_cart,
   remove_from_cart,

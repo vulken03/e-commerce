@@ -394,6 +394,20 @@ const email_verification = async (req, res, next) => {
     next(err);
   }
 };
+
+const list_address_Details = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const list_address = await customer_model.list_address_Details(customer_id);
+    res.status(constants.responseCodes.success).json({
+      success: list_address.success,
+      data: list_address.data,
+      message: list_address.message,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   signup,
   login,
@@ -407,4 +421,5 @@ module.exports = {
   update_address,
   email_verification,
   customer_logout,
+  list_address_Details,
 };

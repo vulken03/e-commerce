@@ -9,10 +9,12 @@ module.exports = (sequelize, Sequelize) => {
     product_name: {
       type: Sequelize.STRING(60),
       allowNull: false,
+      unique: "uniqueSelectedItem",
     },
-    model_name: {
-      type: Sequelize.STRING(60),
+    model_id: {
+      type: Sequelize.INTEGER,
       allowNull: false,
+      unique: "uniqueSelectedItem",
     },
     product_description: {
       type: Sequelize.STRING,
@@ -45,6 +47,9 @@ module.exports = (sequelize, Sequelize) => {
     product.belongsTo(models.product_brand, { foreignKey: "brand_id" });
     product.hasMany(models.cart, { foreignKey: "product_id" });
     product.hasMany(models.order_item, { foreignKey: "product_id" });
+    product.belongsTo(models.master_model, {
+      foreignKey: { name: "model_id", unique: "uniqueSelectedItem" },
+    });
   };
   return product;
 };

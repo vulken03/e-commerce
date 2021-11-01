@@ -970,6 +970,28 @@ const customer_logout = async (uuid) => {
   }
 };
 
+const list_address_Details = async (customer_id) => {
+  const list_address = await _DB.customer_address.findAll({
+    where: {
+      customer_id,
+    },
+    attributes: [
+      "address_id",
+      "street",
+      "city",
+      "pincode",
+      "state",
+      "country",
+      "is_default",
+    ],
+    raw: true,
+  });
+  return {
+    success: true,
+    data: list_address,
+  };
+};
+
 module.exports = {
   signup,
   verify_email,
@@ -983,4 +1005,5 @@ module.exports = {
   delete_address,
   update_address,
   customer_logout,
+  list_address_Details,
 };

@@ -41,6 +41,11 @@ module.exports = (app) => {
     customer_service.customer_logout
   );
   app.post("/email_verification", customer_service.email_verification);
+  app.get(
+    "/list_address_details",
+    allowCustomerOnly,
+    customer_service.list_address_Details
+  );
 };
 //C-TODO Create API for Generating a new customer verification token if the account is not yet verified - this is cus if user loses its inital token then he can generate a new verification token to verify its account. Token should expire after 1 hr.
 // C-TODO Also, when you are generating verification token initially while registration then it should be valid for 1 hr only so create session token and to handle the expiry.

@@ -415,6 +415,7 @@ const specific_product_type = async (product_type_id) => {
       product_type_id,
     },
     attributes: [
+      "product_type_id",
       "product_type_name",
       [
         sequelize.fn(
@@ -436,11 +437,11 @@ const specific_product_type = async (product_type_id) => {
           `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
                               product_type_attribute.attribute_name,
                               'attribute_values',
-                              product_attribute_value.value))
+                             attribute_value.attribute_value))
       FROM
-          product_attribute_value
+           attribute_value
               LEFT JOIN
-          product_type_attribute ON product_attribute_value.attribute_id = product_type_attribute.attribute_id
+          product_type_attribute ON attribute_value.attribute_id = product_type_attribute.attribute_id
          )`
         ),
         "attribute_list",
@@ -844,12 +845,12 @@ const product_listing = async (
   }
 
   filter.attributes = [
+    "product_id",
     "product_name",
-    "model_name",
     "product_description",
     "quantity",
     "price",
-
+    "master_model.model_name",
     [
       sequelize.literal(
         `(SELECT JSON_ARRAYAGG(JSON_OBJECT('attribute_name',
@@ -875,14 +876,20 @@ const product_listing = async (
     filter.offset = Number((pagination.page - 1) * pagination.limit);
     filter.limit = Number(pagination.limit);
   }
-  filter.include = {
-    model: _DB.product_attribute_value,
-    attributes: [],
-    include: {
-      model: _DB.product_type_attribute,
+  filter.include = [
+    {
+      model: _DB.product_attribute_value,
+      attributes: [],
+      include: {
+        model: _DB.product_type_attribute,
+        attributes: [],
+      },
+    },
+    {
+      model: _DB.master_model,
       attributes: [],
     },
-  };
+  ];
 
   if (Object.keys(filterby).length !== 0) {
     let S1 = "";
@@ -970,8 +977,9 @@ const specific_product_listing = async (product_id) => {
       product_id,
     },
     attributes: [
+      "product_id",
       "product_name",
-      "model_name",
+      "master_model.model_name",
       "product_description",
       "quantity",
       "price",
@@ -993,14 +1001,20 @@ const specific_product_listing = async (product_id) => {
         "attribute_list",
       ],
     ],
-    include: {
-      model: _DB.product_attribute_value,
-      attributes: [],
-      include: {
-        model: _DB.product_type_attribute,
+    include: [
+      {
+        model: _DB.product_attribute_value,
+        attributes: [],
+        include: {
+          model: _DB.product_type_attribute,
+          attributes: [],
+        },
+      },
+      {
+        model: _DB.master_model,
         attributes: [],
       },
-    },
+    ],
     raw: true,
   });
   if (specific_product) {
@@ -1067,7 +1081,7 @@ const create_product_data = async (specification_data) => {
       product_type_name,
       brand_name,
     } = specification_data;
-    const [m1, m2] = await Promise.all([
+    const [m1, m2, m3] = await Promise.all([
       _DB.product_type.findOne({
         where: {
           product_type_name,
@@ -1082,31 +1096,84 @@ const create_product_data = async (specification_data) => {
         attributes: ["brand_id", "brand_name"],
         raw: true,
       }),
-    ]);
-    if (m1 && m2) {
-      const add_product_details = await _DB.product.create(
-        {
-          product_name,
+      _DB.master_model.findOne({
+        where: {
           model_name,
-          product_description,
-          quantity,
-          price,
-          product_type_id: m1.product_type_id,
-          brand_id: m2.brand_id,
         },
-        {
-          transaction,
-          fields: [
-            "product_name",
-            "model_name",
-            "product_description",
-            "quantity",
-            "price",
-            "product_type_id",
-            "brand_id",
-          ],
+        attributes: ["model_id", "model_name"],
+        raw: true,
+      }),
+    ]);
+    let add_product_details = null;
+    if (m1 && m2) {
+      if (!m3) {
+        const add_model_details = await _DB.master_model.create(
+          {
+            model_name,
+          },
+          {
+            fields: ["model_id", "model_name"],
+            transaction,
+          }
+        );
+        if (add_model_details) {
+          add_product_details = await _DB.product.create(
+            {
+              product_name,
+              model_id: add_model_details.model_id,
+              product_description,
+              quantity,
+              price,
+              product_type_id: m1.product_type_id,
+              brand_id: m2.brand_id,
+            },
+            {
+              transaction,
+              fields: [
+                "product_name",
+                "model_id",
+                "product_description",
+                "quantity",
+                "price",
+                "product_type_id",
+                "brand_id",
+              ],
+            }
+          );
+        } else {
+          const error_message = "error while creating model_details";
+          return {
+            success: false,
+            data: null,
+            error: new Error(error_message).stack,
+            message: error_message,
+          };
         }
-      );
+      } else {
+        add_product_details = await _DB.product.create(
+          {
+            product_name,
+            model_id: m3.model_id,
+            product_description,
+            quantity,
+            price,
+            product_type_id: m1.product_type_id,
+            brand_id: m2.brand_id,
+          },
+          {
+            transaction,
+            fields: [
+              "product_name",
+              "model_id",
+              "product_description",
+              "quantity",
+              "price",
+              "product_type_id",
+              "brand_id",
+            ],
+          }
+        );
+      }
       if (add_product_details) {
         const findData = await _DB.product_type_attribute.findAll({
           where: {
@@ -1199,7 +1266,6 @@ const update_product = async (product_id, product_data) => {
       attributes: [
         "product_id",
         "product_name",
-        "model_name",
         "product_description",
         "price",
         "quantity",
@@ -1208,13 +1274,7 @@ const update_product = async (product_id, product_data) => {
     });
     if (find_product) {
       const update_product = await find_product.update(product_data, {
-        fields: [
-          "product_name",
-          "model_name",
-          "product_description",
-          "price",
-          "quantity",
-        ],
+        fields: ["product_name", "product_description", "price", "quantity"],
         transaction,
       });
       if (update_product) {
