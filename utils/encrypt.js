@@ -20,7 +20,7 @@ const validatePassword = (password, passwordHash, salt) => {
 
 let obj = {
   email:"virajkumarparmar@gmail.com",
-  password: "abc",
+  password: "1234",
 };
 
 const data = JSON.stringify(obj);
