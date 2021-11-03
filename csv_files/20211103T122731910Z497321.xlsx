@@ -1,0 +1,2 @@
+order_detail_id,total_quantity,total_price,gst,subtotal,order_status
+5,2,34550,4500,30000,pending

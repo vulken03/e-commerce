@@ -4,7 +4,6 @@ const encryptPassword = (password) => {
   const saltRound = 10;
   const salt = bcrypt.genSaltSync(saltRound);
   const hash = bcrypt.hashSync(password, salt);
-
   const encrypedPassword = `${salt}:${hash}`;
   return encrypedPassword;
 };
@@ -19,8 +18,8 @@ const validatePassword = (password, passwordHash, salt) => {
 };
 
 let obj = {
-  email:"virajkumarparmar@gmail.com",
-  password: "1234",
+  email:"viraj.parmar@brainvire.com",
+  password: "abc",
 };
 
 const data = JSON.stringify(obj);

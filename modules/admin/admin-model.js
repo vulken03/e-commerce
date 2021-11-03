@@ -1,9 +1,12 @@
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const config = require("../../configuration/config");
+const { generate_csv_file } = require("../../utils/common");
 const { validatePassword } = require("../../utils/encrypt");
 const { logger } = require("../../utils/logger");
-
+const sequelize = require("sequelize");
+const fs = require("fs");
+const csv = require("csv");
 const create_admin = async (admin_data) => {
   const admin_creation = await _DB.admin.create(admin_data, {
     fields: ["username", "email", "phoneno", "password"],
@@ -91,7 +94,7 @@ const admin_login = async ({ email, password }) => {
     where: {
       email,
     },
-    attributes: ["admin_id", "email","username","password"],
+    attributes: ["admin_id", "email", "username", "password"],
     raw: true,
   });
 
@@ -195,8 +198,55 @@ const admin_logout = async (uuid) => {
   }
 };
 
+const export_data_to_csv = async () => {
+  const order_history = await _DB.order_detail.findAll({
+    attributes: [
+      "order_items.order_detail_id",
+      "customer.customer_id",
+      "customer.name",
+      [
+        sequelize.fn("sum", sequelize.col(`order_items.quantity`)),
+        "total_quantity",
+      ],
+      [sequelize.fn("sum", sequelize.col(`order_items.price`)), "total_price"],
+      [sequelize.fn("sum", sequelize.col(`order_items.gst`)), "gst"],
+      [sequelize.fn("sum", sequelize.col(`order_items.subtotal`)), "subtotal"],
+      "order_status",
+    ],
+    include: [
+      {
+        model: _DB.order_item,
+        attributes: [],
+      },
+      {
+        model: _DB.customer,
+        attributes: [],
+      },
+    ],
+    raw: true,
+    group: "order_detail.order_detail_id",
+  });
+  const export_data = generate_csv_file(order_history);
+  if (export_data) {
+    return {
+      success: true,
+      data: null,
+      message: "csv file generated successfully..",
+    };
+  } else {
+    const error_message = "error while generating excel file";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
 module.exports = {
   admin_login,
   create_admin,
   admin_logout,
+  export_data_to_csv,
 };

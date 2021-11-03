@@ -1,6 +1,9 @@
 const helper = require("../../utils/helper");
+const { generate_csv_file } = require("../../utils/common");
 const sequelize = require("sequelize");
 const { Op } = require("sequelize");
+const csv = require("csv");
+const fs = require("fs");
 const add_products_to_cart = async (customer_id, cart_data) => {
   const { product_id, quantity } = cart_data;
   const find_product = await _DB.product.findOne({
@@ -643,10 +646,16 @@ const specific_order_listing = async (customer_id, order_detail_id) => {
       "order_status",
       "purchase_date",
     ],
-    include: {
-      model: _DB.order_item,
-      attributes: [],
-    },
+    include: [
+      {
+        model: _DB.order_item,
+        attributes: [],
+      },
+      {
+        model: _DB.customer,
+        attributes: [],
+      },
+    ],
     raw: true,
     group: "order_detail.order_detail_id",
   });
@@ -836,6 +845,49 @@ const cancel_order = async (order_detail_id, customer_id) => {
     };
   }
 };
+
+const export_data_to_csv = async (customer_id) => {
+  const order_history = await _DB.order_detail.findAll({
+    where: {
+      customer_id,
+    },
+    attributes: [
+      "order_items.order_detail_id",
+      [
+        sequelize.fn("sum", sequelize.col(`order_items.quantity`)),
+        "total_quantity",
+      ],
+      [sequelize.fn("sum", sequelize.col(`order_items.price`)), "total_price"],
+      [sequelize.fn("sum", sequelize.col(`order_items.gst`)), "gst"],
+      [sequelize.fn("sum", sequelize.col(`order_items.subtotal`)), "subtotal"],
+      "order_status",
+    ],
+    include: {
+      model: _DB.order_item,
+      attributes: [],
+    },
+    raw: true,
+    group: "order_detail.order_detail_id",
+  });
+
+  const export_data = generate_csv_file(order_history);
+  if (export_data) {
+    return {
+      success: true,
+      data: null,
+      message: "csv file generated successfully..",
+    };
+  } else {
+    const error_message = "error while generating excel file";
+    return {
+      success: false,
+      data: null,
+      error: new Error(error_message).stack,
+      message: error_message,
+    };
+  }
+};
+
 module.exports = {
   add_products_to_cart,
   remove_from_cart,
@@ -846,4 +898,5 @@ module.exports = {
   specific_order_listing,
   cancel_order,
   order_details,
+  export_data_to_csv,
 };

@@ -32,4 +32,10 @@ module.exports = (app) => {
     customer_product_service.cancel_order
   );
   app.all("/order_details", customer_product_service.order_details);
+
+  app.get(
+    "/order_history",
+    allowCustomerOnly,
+    customer_product_service.export_data_to_csv
+  );
 };

@@ -263,6 +263,32 @@ const order_details = async (req, res, next) => {
     logger.error(err);
   }
 };
+
+const export_data_to_csv = async (req, res, next) => {
+  try {
+    const customer_id = req.user.customer_id;
+    const export_data = await customer_product_model.export_data_to_csv(
+      customer_id
+    );
+    if (export_data.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: export_data.success,
+        data: export_data.data,
+        message: export_data.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: export_data.success,
+        data: export_data.data,
+        error: export_data.error,
+        message: export_data.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
 module.exports = {
   add_products_to_cart,
   remove_products_from_cart,
@@ -273,4 +299,5 @@ module.exports = {
   specific_order_listing,
   cancel_order,
   order_details,
+  export_data_to_csv,
 };

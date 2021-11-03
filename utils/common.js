@@ -1,4 +1,7 @@
 const mailer = require("./mailer");
+const fs = require("fs");
+const csv = require("csv");
+const generate = require("csv-generate");
 const config = require("../configuration/config");
 let Validator = require("jsonschema").Validator;
 let v = new Validator();
@@ -61,10 +64,22 @@ const sendEmail = async ({ to, subject, html }) => {
     throw err;
   }
 };
+const generate_csv_file = (order_history) => {
+  let timestamp = new Date().toISOString().replace(/[-:.]/g, "");
+  let random = ("" + Math.random()).substring(2, 8);
+  const random_number = timestamp + random;
+  const ws = fs.createWriteStream(`./csv_files/${random_number}.xlsx`);
 
+  return csv
+    .stringify(order_history, {
+      header: true,
+    })
+    .pipe(ws);
+};
 module.exports = {
   schemaValidator,
   allowAdminOnly,
   sendEmail,
   allowCustomerOnly,
+  generate_csv_file,
 };

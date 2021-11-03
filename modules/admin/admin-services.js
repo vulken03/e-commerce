@@ -85,8 +85,32 @@ const admin_logout = async (req, res, next) => {
     next(err);
   }
 };
+
+const export_data_to_csv = async (req, res, next) => {
+  try {
+    const export_data = await admin_model.export_data_to_csv();
+    if (export_data.success === true) {
+      res.status(constants.responseCodes.success).json({
+        success: export_data.success,
+        data: export_data.data,
+        message: export_data.message,
+      });
+    } else {
+      res.status(constants.responseCodes.badrequest).json({
+        success: export_data.success,
+        data: export_data.data,
+        error: export_data.error,
+        message: export_data.message,
+      });
+    }
+  } catch (err) {
+    next(err);
+    logger.error(err);
+  }
+};
 module.exports = {
   admin_login,
   admin_registration,
   admin_logout,
+  export_data_to_csv,
 };
