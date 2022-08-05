@@ -40,7 +40,7 @@ module.exports = (app) => {
     allowCustomerOnly,
     customer_service.customer_logout
   );
-  app.post("/email_verification", customer_service.email_verification);
+  app.get("/email-verified", customer_service.email_verification);
   app.get(
     "/list_address_details",
     allowCustomerOnly,

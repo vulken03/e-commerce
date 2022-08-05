@@ -17,12 +17,14 @@ const create_product_type = async (req, res, next) => {
     const product_creation = await product_model.create_product_type(data);
     if (product_creation.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: product_creation.success,
         data: product_creation.data,
         message: product_creation.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: product_creation.success,
         data: product_creation.data,
         error: product_creation.error,
@@ -42,12 +44,14 @@ const delete_product_type = async (req, res, next) => {
     );
     if (product_type_deletion.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: product_type_deletion.success,
         data: product_type_deletion.data,
         message: product_type_deletion.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: product_type_deletion.success,
         data: product_type_deletion.data,
         error: product_type_deletion.error,
@@ -86,6 +90,7 @@ const product_type_listing = async (req, res, next) => {
     });
     // C-TODO: while listing provide product_type_id as well in response data
     res.status(constants.responseCodes.success).json({
+      code:constants.responseCodes.success,
       success: product_type.success,
       data: product_type.data,
       message: product_type.message,
@@ -103,12 +108,14 @@ const find_single_product_type = async (req, res, next) => {
     );
     if (product_type.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: product_type.success,
         data: product_type.data,
         message: product_type.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: product_type.success,
         data: product_type.data,
         error: product_type.error,
@@ -138,12 +145,14 @@ const update_product_type = async (req, res, next) => {
     );
     if (update.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: update.success,
         data: update.data,
         message: update.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: update.success,
         data: update.data,
         error: update.error,
@@ -170,12 +179,14 @@ const add_product_specification = async (req, res, next) => {
     const add_specifications = await product_model.create_product_data(data);
     if (add_specifications.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: add_specifications.success,
         data: add_specifications.data,
         message: add_specifications.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: add_specifications.success,
         data: add_specifications.data,
         error: add_specifications.error,
@@ -202,6 +213,7 @@ const product_listing = async (req, res, next) => {
     // }
     const all_products = await product_model.product_listing(data, filters);
     res.status(constants.responseCodes.success).json({
+      code:constants.responseCodes.success,
       success: all_products.success,
       data: all_products.data,
       message: all_products.message,
@@ -219,12 +231,14 @@ const specific_product_listing = async (req, res, next) => {
     );
     if (specific_product.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: specific_product.success,
         data: specific_product.data,
         message: specific_product.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: specific_product.success,
         data: specific_product.data,
         error: specific_product.error,
@@ -244,12 +258,14 @@ const delete_product = async (req, res, next) => {
     );
     if (product_deletion.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: product_deletion.success,
         data: product_deletion.data,
         message: product_deletion.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: product_deletion.success,
         data: product_deletion.data,
         error: product_deletion.error,
@@ -280,12 +296,14 @@ const update_product = async (req, res, next) => {
     );
     if (product_updation.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: product_updation.success,
         data: product_updation.data,
         message: product_updation.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: product_updation.success,
         data: product_updation.data,
         error: product_updation.error,
@@ -316,12 +334,14 @@ const manage_order_status = async (req, res, next) => {
     );
     if (change_order_status.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: change_order_status.success,
         data: change_order_status.data,
         message: change_order_status.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: change_order_status.success,
         data: change_order_status.data,
         error: change_order_status.error,

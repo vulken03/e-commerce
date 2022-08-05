@@ -19,12 +19,14 @@ const add_product_type_attributes = async (req, res, next) => {
       await product_attributes_model.create_product_type_attribute(data);
     if (add_attributes.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: add_attributes.success,
         data: add_attributes.data,
         message: add_attributes.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: add_attributes.success,
         data: add_attributes.data,
         error: add_attributes.error,
@@ -56,12 +58,14 @@ const update_product_type_attributes = async (req, res, next) => {
       );
     if (update_attributes.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: update_attributes.success,
         data: update_attributes.data,
         message: update_attributes.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: update_attributes.success,
         data: update_attributes.data,
         error: update_attributes.error,
@@ -83,12 +87,14 @@ const delete_product_type_attribute = async (req, res, next) => {
       );
     if (delete_attribute.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: delete_attribute.success,
         data: delete_attribute.data,
         message: delete_attribute.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: delete_attribute.success,
         data: delete_attribute.data,
         error: delete_attribute.error,

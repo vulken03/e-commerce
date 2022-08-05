@@ -22,12 +22,14 @@ const add_products_to_cart = async (req, res, next) => {
 
     if (add_to_cart.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: add_to_cart.success,
         data: add_to_cart.data,
         message: add_to_cart.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: add_to_cart.success,
         data: add_to_cart.data,
         error: add_to_cart.error,
@@ -51,12 +53,14 @@ const remove_products_from_cart = async (req, res, next) => {
 
     if (remove_from_cart.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: remove_from_cart.success,
         data: remove_from_cart.data,
         message: remove_from_cart.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: remove_from_cart.success,
         data: remove_from_cart.data,
         error: remove_from_cart.error,
@@ -82,12 +86,14 @@ const manage_quantity = async (req, res, next) => {
 
     if (change_quantity.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: change_quantity.success,
         data: change_quantity.data,
         message: change_quantity.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: change_quantity.success,
         data: change_quantity.data,
         error: change_quantity.error,
@@ -110,6 +116,7 @@ const list_cart = async (req, res, next) => {
     );
 
     res.status(constants.responseCodes.success).json({
+      code:constants.responseCodes.success,
       success: cart_listing.success,
       data: cart_listing.data,
       message: cart_listing.message,
@@ -138,12 +145,14 @@ const place_order = async (req, res, next) => {
     );
     if (order.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: order.success,
         data: order.data,
         message: order.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: order.success,
         data: order.data,
         error: order.error,
@@ -177,6 +186,7 @@ const order_listing = async (req, res, next) => {
       isAdmin
     );
     res.status(constants.responseCodes.success).json({
+      code:constants.responseCodes.success,
       success: order_details.success,
       data: order_details.data,
       message: order_details.message,
@@ -197,12 +207,14 @@ const specific_order_listing = async (req, res, next) => {
     );
     if (order_details.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: order_details.success,
         data: order_details.data,
         message: order_details.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: order_details.success,
         data: order_details.data,
         error: order_details.error,
@@ -225,12 +237,14 @@ const cancel_order = async (req, res, next) => {
     );
     if (order_cancel.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: order_cancel.success,
         data: order_cancel.data,
         message: order_cancel.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: order_cancel.success,
         data: order_cancel.data,
         error: order_cancel.error,
@@ -254,6 +268,7 @@ const order_details = async (req, res, next) => {
       isAdmin
     );
     res.status(constants.responseCodes.success).json({
+      code:constants.responseCodes.success,
       success: order_detail.success,
       data: order_detail.data,
       message: order_detail.message,
@@ -272,12 +287,14 @@ const export_data_to_csv = async (req, res, next) => {
     );
     if (export_data.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: export_data.success,
         data: export_data.data,
         message: export_data.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: export_data.success,
         data: export_data.data,
         error: export_data.error,

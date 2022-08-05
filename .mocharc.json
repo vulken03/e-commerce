@@ -1,0 +1,7 @@
+{
+    "diff": true,
+    "extension": ["js","mjs"],
+    "timeout": "2000",
+    "watch-files": [ "test/**/*.js"],
+    "watch-ignore": ["node_modules"]
+}

@@ -19,12 +19,14 @@ const signup = async (req, res, next) => {
 
     if (customer_signup.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: customer_signup.success,
         data: customer_signup.data,
         message: customer_signup.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: customer_signup.success,
         data: customer_signup.data,
         error: customer_signup.error,
@@ -33,7 +35,7 @@ const signup = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
-    logger.error(err);
+    //logger.error(err);
   }
 };
 
@@ -52,12 +54,14 @@ const login = async (req, res, next) => {
     const login = await customer_model.login(customer_data);
     if (login.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: login.success,
         data: login.data,
         message: login.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: login.success,
         data: login.data,
         error: login.error,
@@ -66,7 +70,7 @@ const login = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
-    logger.error(err);
+    //logger.error(err);
   }
 };
 
@@ -90,12 +94,14 @@ const update_profile = async (req, res, next) => {
 
     if (update_profile_data.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: update_profile_data.success,
         data: update_profile_data.data,
         message: update_profile_data.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: update_profile_data.success,
         data: update_profile_data.data,
         error: update_profile_data.error,
@@ -104,7 +110,7 @@ const update_profile = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
-    logger.error(err);
+    //logger.error(err);
   }
 };
 
@@ -128,12 +134,14 @@ const update_password = async (req, res, next) => {
 
     if (update_password_data.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: update_password_data.success,
         data: update_password_data.data,
         message: update_password_data.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: update_password_data.success,
         data: update_password_data.data,
         error: update_password_data.error,
@@ -142,7 +150,7 @@ const update_password = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
-    logger.error(err);
+    //logger.error(err);
   }
 };
 
@@ -159,12 +167,14 @@ const passwordResetMail = async (req, res, next) => {
     const resetPassword = await customer_model.sendPasswordResetMail(user);
     if (resetPassword.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: resetPassword.success,
         data: resetPassword.data,
         message: resetPassword.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: resetPassword.success,
         data: resetPassword.data,
         error: resetPassword.error,
@@ -193,12 +203,14 @@ const password_reset = async (req, res, next) => {
     );
     if (resetPassword.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: resetPassword.success,
         data: resetPassword.data,
         message: resetPassword.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: resetPassword.success,
         data: resetPassword.data,
         error: resetPassword.error,
@@ -227,12 +239,14 @@ const verify_email = async (req, res, next) => {
     );
     if (email_verification.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: email_verification.success,
         data: email_verification.data,
         message: email_verification.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: email_verification.success,
         data: email_verification.data,
         error: email_verification.error,
@@ -261,12 +275,14 @@ const address_manage = async (req, res, next) => {
     );
     if (manage_address.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: manage_address.success,
         data: manage_address.data,
         message: manage_address.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: manage_address.success,
         data: manage_address.data,
         error: manage_address.error,
@@ -288,12 +304,14 @@ const delete_address = async (req, res, next) => {
     );
     if (address_delete.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: address_delete.success,
         data: address_delete.data,
         message: address_delete.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: address_delete.success,
         data: address_delete.data,
         error: address_delete.error,
@@ -324,12 +342,14 @@ const update_address = async (req, res, next) => {
     );
     if (address_update.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: address_update.success,
         data: address_update.data,
         message: address_update.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: address_update.success,
         data: address_update.data,
         error: address_update.error,
@@ -347,12 +367,14 @@ const customer_logout = async (req, res, next) => {
     const logout = await customer_model.customer_logout(uuid);
     if (logout.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: logout.success,
         data: logout.data,
         message: logout.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: logout.success,
         data: logout.data,
         error: logout.error,
@@ -366,24 +388,26 @@ const customer_logout = async (req, res, next) => {
 
 const email_verification = async (req, res, next) => {
   try {
-    const data = req.body;
-    const { email } = data;
-    const { isValid, error } = common.schemaValidator(
-      data,
-      customer_schema.verify_schema
-    );
-    if (!isValid) {
-      return next(error);
-    }
-    const email_verify = await customer_model.email_verification(email);
+    const data= req.query.token;
+    console.log('data',data);
+    // const { isValid, error } = common.schemaValidator(
+    //   data,
+    //   customer_schema.verify_schema
+    // );
+    // if (!isValid) {
+    //   return next(error);
+    // }
+    const email_verify = await customer_model.email_verification(data);
     if (email_verify.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: email_verify.success,
         data: email_verify.data,
         message: email_verify.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: email_verify.success,
         data: email_verify.data,
         error: email_verify.error,
@@ -400,6 +424,7 @@ const list_address_Details = async (req, res, next) => {
     const customer_id = req.user.customer_id;
     const list_address = await customer_model.list_address_Details(customer_id);
     res.status(constants.responseCodes.success).json({
+      code:constants.responseCodes.success,
       success: list_address.success,
       data: list_address.data,
       message: list_address.message,

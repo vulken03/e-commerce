@@ -11,7 +11,7 @@ const verifyJWT = async ({ token, url }) => {
       userData = jwt.verify(token, config.get("jwt.reset_password_key"), {
         algorithms: ["HS384"],
       });
-    } else if (url == "/email_verify") {
+    } else if (url == "/email_verifyi") {
       userData = jwt.verify(token, config.get("jwt.verification_email_key"), {
         algorithms: ["HS384"],
       });

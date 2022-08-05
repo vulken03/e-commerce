@@ -12,12 +12,14 @@ const admin_registration = async (req, res, next) => {
     const create_admin = await admin_model.create_admin(admin_data);
     if (create_admin.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: create_admin.success,
         data: create_admin.data,
         message: create_admin.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: create_admin.success,
         data: create_admin.data,
         error: create_admin.error,
@@ -45,12 +47,14 @@ const admin_login = async (req, res, next) => {
     const login = await admin_model.admin_login(admin_data);
     if (login.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: login.success,
         data: login.data,
         message: login.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: login.success,
         data: login.data,
         error: login.error,
@@ -69,12 +73,14 @@ const admin_logout = async (req, res, next) => {
     const logout = await admin_model.admin_logout(uuid);
     if (logout.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: logout.success,
         data: logout.data,
         message: logout.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: logout.success,
         data: logout.data,
         error: logout.error,
@@ -91,12 +97,14 @@ const export_data_to_csv = async (req, res, next) => {
     const export_data = await admin_model.export_data_to_csv();
     if (export_data.success === true) {
       res.status(constants.responseCodes.success).json({
+        code:constants.responseCodes.success,
         success: export_data.success,
         data: export_data.data,
         message: export_data.message,
       });
     } else {
       res.status(constants.responseCodes.badrequest).json({
+        code:constants.responseCodes.badrequest,
         success: export_data.success,
         data: export_data.data,
         error: export_data.error,
